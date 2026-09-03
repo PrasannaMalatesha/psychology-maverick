@@ -8,7 +8,7 @@
 
 | M | Milestone | Scope (one line) | Spec | Issue | Status |
 |---|-----------|------------------|------|-------|:---:|
-| **M1** | Vertical slice | Ingest a corpus *subset* → real `POST /chat` (retrieve → synthesize) → one Langfuse trace. Proves the spine. | [M1-rag-chat-slice.md](specs/M1-rag-chat-slice.md) | — | 🟡 |
+| **M1** | Vertical slice | Ingest a corpus *subset* → real `POST /chat` (retrieve → synthesize) → one Langfuse trace. Proves the spine. | [M1-rag-chat-slice.md](specs/M1-rag-chat-slice.md) | [#1](https://github.com/PrasannaMalatesha/psychology-maverick/issues/1)–[#5](https://github.com/PrasannaMalatesha/psychology-maverick/issues/5) | 🔵 |
 | **M2** | Contracts & storage | Full `Answer` Pydantic contract, complete Postgres schema + pgvector/HNSW, full ingestion CLI over the whole corpus. | — | — | ⬜ |
 | **M3** | Agent | LangGraph node graph, tool-calling (keyword/fetch), Postgres checkpointer, multi-turn conversations. | — | — | ⬜ |
 | **M4** | Safety *(non-negotiable — [ADR-0004](adr/0004-informational-safety-posture.md))* | Crisis-escalation node (before retrieval), faithfulness judge, human-in-the-loop interrupt, clinical disclaimers. **Gate: no user-facing launch before this.** | — | — | ⬜ |
@@ -17,6 +17,16 @@
 | **M7** | Evals & CI gate | Offline evaluation suite (faithfulness, retrieval quality) + CI quality gate + `import-linter` boundary checks. | — | — | ⬜ |
 | **M8** | Frontend | Chat + citations + trust states + auth + sidebar, on the chosen frontend (see open decision below). | — | — | ⬜ |
 | **M9** | Deploy | Compose → Render (FastAPI) + Neon (Postgres) + Upstash (Redis) + Vercel + Langfuse Cloud ([ADR-0003](adr/0003-hybrid-deployment.md)). | — | — | ⬜ |
+
+### M1 tickets (build in order; live status on GitHub)
+
+Work the frontier — a ticket is grabbable once its blockers are ✅.
+
+- [ ] [#1](https://github.com/PrasannaMalatesha/psychology-maverick/issues/1) **T1** Walking skeleton: backend + `/health` + test seams — *blocked by: none*
+- [ ] [#2](https://github.com/PrasannaMalatesha/psychology-maverick/issues/2) **T2** Corpus ingestion CLI + passage store — *blocked by: #1*
+- [ ] [#3](https://github.com/PrasannaMalatesha/psychology-maverick/issues/3) **T3** Grounded, cited `POST /chat` (happy path) — *blocked by: #1, #2*
+- [ ] [#4](https://github.com/PrasannaMalatesha/psychology-maverick/issues/4) **T4** Insufficient Context + no-fabrication guarantee — *blocked by: #3*
+- [ ] [#5](https://github.com/PrasannaMalatesha/psychology-maverick/issues/5) **T5** One Langfuse trace per Query — *blocked by: #3*
 
 **Definition of v1 / MVP:** M1–M9 together — a real User can sign in, ask a Query, and get a safe, grounded, cited Answer in a deployed UI. M1 alone is an *internal spine proof*, not a shippable product.
 
@@ -27,4 +37,4 @@
 
 ## Progress log
 
-- **2026-09-03** — Repo scaffolded + pushed to GitHub (`PrasannaMalatesha/psychology-maverick`, public). Agent-skill config + triage labels set up. M1 spec written. Backend not yet built; canned matcher still in place.
+- **2026-09-03** — Repo scaffolded + pushed to GitHub (`PrasannaMalatesha/psychology-maverick`, public). Agent-skill config + triage labels set up. M1 spec written and broken into 5 `ready-for-agent` tickets (#1–#5). Backend not yet built; canned matcher still in place. **Frontier: #1 (T1) is grabbable now.**
