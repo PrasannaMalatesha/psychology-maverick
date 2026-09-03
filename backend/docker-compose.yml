@@ -1,0 +1,16 @@
+# Local dev database: Postgres + pgvector (ADR-0001). Tests don't need this —
+# they use an ephemeral testcontainers pgvector instance.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: maverick
+    ports:
+      - "5432:5432"
+    volumes:
+      - maverick_pgdata:/var/lib/postgresql/data
+
+volumes:
+  maverick_pgdata:

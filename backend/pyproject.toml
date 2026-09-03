@@ -1,0 +1,64 @@
+[project]
+name = "psychology-maverick-backend"
+version = "0.1.0"
+description = "Retrieval-grounded Knowledge Assistant backend (modular monolith)."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.2",
+    "pgvector>=0.3",
+    # litellm (the real model gateway adapter) is added in T3, when synthesis/embeddings
+    # are first exercised. T1 ships the gateway interface + a deterministic fake only.
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "httpx>=0.27",
+    "testcontainers>=4.5",
+    "pyright>=1.1",
+    "ruff>=0.5",
+    "import-linter>=2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+filterwarnings = [
+    # Third-party deprecations we don't control (test-only dependencies).
+    "ignore::DeprecationWarning:testcontainers.*",
+    "ignore::DeprecationWarning:starlette.*",
+    "ignore::DeprecationWarning:httpx.*",
+]
+
+[tool.pyright]
+include = ["app", "tests"]
+typeCheckingMode = "standard"
+pythonVersion = "3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+# Modular-monolith boundaries (ADR-0005 / ADR-0006): cross-feature dependency is
+# allowed only downward through public services (chat consumes retrieval/corpus,
+# never the reverse); shared vocabulary lives in core, not in a feature.
+[tool.importlinter]
+root_package = "app"
+
+[[tool.importlinter.contracts]]
+name = "Features depend downward only, never sideways or upward"
+type = "layers"
+layers = [
+    "app.features.chat",
+    "app.features.retrieval",
+    "app.features.corpus",
+]

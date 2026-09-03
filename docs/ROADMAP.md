@@ -22,8 +22,8 @@
 
 Work the frontier — a ticket is grabbable once its blockers are ✅.
 
-- [ ] [#1](https://github.com/PrasannaMalatesha/psychology-maverick/issues/1) **T1** Walking skeleton: backend + `/health` + test seams — *blocked by: none*
-- [ ] [#2](https://github.com/PrasannaMalatesha/psychology-maverick/issues/2) **T2** Corpus ingestion CLI + passage store — *blocked by: #1*
+- [x] [#1](https://github.com/PrasannaMalatesha/psychology-maverick/issues/1) **T1** Walking skeleton: backend + `/health` + test seams — ✅ done (ruff/pyright/pytest/import-linter green)
+- [ ] [#2](https://github.com/PrasannaMalatesha/psychology-maverick/issues/2) **T2** Corpus ingestion CLI + passage store — *blocked by: #1 (now unblocked)*
 - [ ] [#3](https://github.com/PrasannaMalatesha/psychology-maverick/issues/3) **T3** Grounded, cited `POST /chat` (happy path) — *blocked by: #1, #2*
 - [ ] [#4](https://github.com/PrasannaMalatesha/psychology-maverick/issues/4) **T4** Insufficient Context + no-fabrication guarantee — *blocked by: #3*
 - [ ] [#5](https://github.com/PrasannaMalatesha/psychology-maverick/issues/5) **T5** One Langfuse trace per Query — *blocked by: #3*
@@ -37,4 +37,5 @@ Work the frontier — a ticket is grabbable once its blockers are ✅.
 
 ## Progress log
 
-- **2026-09-03** — Repo scaffolded + pushed to GitHub (`PrasannaMalatesha/psychology-maverick`, public). Agent-skill config + triage labels set up. M1 spec written and broken into 5 `ready-for-agent` tickets (#1–#5). Backend not yet built; canned matcher still in place. **Frontier: #1 (T1) is grabbable now.**
+- **2026-09-03** — Repo scaffolded + pushed to GitHub (`PrasannaMalatesha/psychology-maverick`, public). Agent-skill config + triage labels set up. M1 spec written and broken into 5 `ready-for-agent` tickets (#1–#5). ADR-0006 (deep-module seams) added.
+- **2026-09-03** — **T1 (#1) built + verified**: FastAPI walking skeleton under `backend/` — `GET /health` (DB reachability), pytest+httpx harness over an ephemeral pgvector container, model-gateway seam + deterministic fake, modular monolith with import-linter-enforced boundaries. Gate green: ruff, pyright (0 errors), 5/5 tests, 1/1 import contract. **Frontier now: #2 (T2).**
