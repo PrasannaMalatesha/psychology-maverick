@@ -6,6 +6,16 @@ Repo-level guidance for Claude Code. Product truth lives in `PRODUCT.md` / `proj
 **Start here to see where the project stands:** [`docs/ROADMAP.md`](docs/ROADMAP.md) — the living
 tracker of the 9 build milestones (M1–M9), each milestone's spec + issue + status.
 
+## Branching
+
+Three long-lived branches, all on `origin`:
+
+- **`dev`** — the integration branch. **All development lands here.** Feature work commits to `dev`.
+- **`main`** — the stable trunk; `dev` is promoted into `main` when a slice is green and reviewed.
+- **`prod`** — what is (or will be) deployed; `main` is promoted into `prod` for a release.
+
+Flow: `dev` → `main` → `prod`. Never commit feature work directly to `main` or `prod`.
+
 ## Agent skills
 
 ### Issue tracker
