@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import Settings, get_settings
 from app.core.db import check_health, ensure_pgvector, make_engine
+from app.core.store import init_store
 from app.features.chat.router import router as chat_router
 
 
@@ -22,6 +23,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         ensure_pgvector(engine)
+        init_store(engine)
         yield
         engine.dispose()
 

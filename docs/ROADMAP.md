@@ -23,8 +23,8 @@
 Work the frontier — a ticket is grabbable once its blockers are ✅.
 
 - [x] [#1](https://github.com/PrasannaMalatesha/psychology-maverick/issues/1) **T1** Walking skeleton: backend + `/health` + test seams — ✅ done (ruff/pyright/pytest/import-linter green)
-- [ ] [#2](https://github.com/PrasannaMalatesha/psychology-maverick/issues/2) **T2** Corpus ingestion CLI + passage store — *blocked by: #1 (now unblocked)*
-- [ ] [#3](https://github.com/PrasannaMalatesha/psychology-maverick/issues/3) **T3** Grounded, cited `POST /chat` (happy path) — *blocked by: #1, #2*
+- [x] [#2](https://github.com/PrasannaMalatesha/psychology-maverick/issues/2) **T2** Corpus ingestion CLI + passage store — ✅ done (10/10 tests, gate green)
+- [ ] [#3](https://github.com/PrasannaMalatesha/psychology-maverick/issues/3) **T3** Grounded, cited `POST /chat` (happy path) — *blocked by: #1, #2 (now unblocked)*
 - [ ] [#4](https://github.com/PrasannaMalatesha/psychology-maverick/issues/4) **T4** Insufficient Context + no-fabrication guarantee — *blocked by: #3*
 - [ ] [#5](https://github.com/PrasannaMalatesha/psychology-maverick/issues/5) **T5** One Langfuse trace per Query — *blocked by: #3*
 
@@ -38,4 +38,5 @@ Work the frontier — a ticket is grabbable once its blockers are ✅.
 ## Progress log
 
 - **2026-09-03** — Repo scaffolded + pushed to GitHub (`PrasannaMalatesha/psychology-maverick`, public). Agent-skill config + triage labels set up. M1 spec written and broken into 5 `ready-for-agent` tickets (#1–#5). ADR-0006 (deep-module seams) added.
-- **2026-09-03** — **T1 (#1) built + verified**: FastAPI walking skeleton under `backend/` — `GET /health` (DB reachability), pytest+httpx harness over an ephemeral pgvector container, model-gateway seam + deterministic fake, modular monolith with import-linter-enforced boundaries. Gate green: ruff, pyright (0 errors), 5/5 tests, 1/1 import contract. **Frontier now: #2 (T2).**
+- **2026-09-03** — **T1 (#1) built + verified**: FastAPI walking skeleton under `backend/` — `GET /health` (DB reachability), pytest+httpx harness over an ephemeral pgvector container, model-gateway seam + deterministic fake, modular monolith with import-linter-enforced boundaries. Gate green: ruff, pyright (0 errors), 5/5 tests, 1/1 import contract.
+- **2026-09-03** — **T2 (#2) built + verified**: passage store (`core/store.py`, pgvector + HNSW, idempotent upsert) + corpus ingestion CLI (markdown front-matter + PDF via pypdf, structure-aware chunking, batched embedding through the gateway). Real embedder = local sentence-transformers (optional `embeddings` extra, lazy); tests use FakeGateway over real pgvector. Gate green: ruff, pyright, **10/10 tests**, import contract kept. Committed to `dev`. **Frontier now: #3 (T3).** (JSON/PLOS reader deferred; markdown+PDF cover the pipeline.)

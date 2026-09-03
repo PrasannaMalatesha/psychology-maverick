@@ -11,9 +11,14 @@ dependencies = [
     "sqlalchemy>=2.0",
     "psycopg[binary]>=3.2",
     "pgvector>=0.3",
-    # litellm (the real model gateway adapter) is added in T3, when synthesis/embeddings
-    # are first exercised. T1 ships the gateway interface + a deterministic fake only.
+    "pypdf>=4.0",
+    # litellm (real synthesis) is added in T3. The real embedder uses local
+    # sentence-transformers (ADR-0002), installed via the `embeddings` extra so
+    # CI stays lean — tests use the deterministic FakeGateway.
 ]
+
+[project.optional-dependencies]
+embeddings = ["sentence-transformers>=3.0"]
 
 [dependency-groups]
 dev = [
