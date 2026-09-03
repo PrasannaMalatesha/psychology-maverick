@@ -19,6 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 embeddings = ["sentence-transformers>=3.0"]
+synthesis = ["litellm>=1.40"]
 
 [dependency-groups]
 dev = [

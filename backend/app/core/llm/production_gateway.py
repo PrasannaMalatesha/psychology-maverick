@@ -34,4 +34,22 @@ class ProductionGateway:
         return [[float(x) for x in vector] for vector in vectors]
 
     def synthesize(self, *, context: str, query: str) -> str:
-        raise NotImplementedError("LiteLLM synthesis is wired in T3")
+        try:
+            import litellm  # type: ignore[import-not-found]
+        except ImportError as exc:  # pragma: no cover - exercised only without the extra
+            raise RuntimeError(
+                "Synthesis needs the 'synthesis' extra: uv sync --extra synthesis"
+            ) from exc
+        system = (
+            "You are a careful assistant. Answer ONLY from the provided context passages. "
+            "If the context does not support an answer, say you don't have enough information. "
+            "Do not invent facts."
+        )
+        response = litellm.completion(
+            model=self._settings.synthesis_model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query}"},
+            ],
+        )
+        return response.choices[0].message.content or ""  # type: ignore[union-attr,index]

@@ -5,10 +5,11 @@ core so neither feature imports the other. One concrete implementation over Post
 pgvector; tested through a real ephemeral database, never a fake (ADR-0006).
 """
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Engine, String, Text, text
+from sqlalchemy import Engine, Row, String, Text, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -76,3 +77,20 @@ def upsert_passages(engine: Engine, records: list[PassageRecord]) -> int:
     with engine.begin() as conn:
         conn.execute(stmt)
     return len(rows)
+
+
+def search(engine: Engine, embedding: list[float], k: int) -> Sequence[Row]:
+    """Return the k passages nearest `embedding` by cosine similarity (HNSW), score-first.
+
+    `score` is cosine similarity in [0, 1] (1 = identical direction). Reads only.
+    """
+    vec_literal = "[" + ",".join(repr(float(x)) for x in embedding) + "]"
+    stmt = text(
+        "SELECT passage_id, text, register, category, document_title, locator, "
+        "       1 - (embedding <=> CAST(:vec AS vector)) AS score "
+        "FROM passages "
+        "ORDER BY embedding <=> CAST(:vec AS vector) "
+        "LIMIT :k"
+    )
+    with engine.connect() as conn:
+        return conn.execute(stmt, {"vec": vec_literal, "k": k}).all()

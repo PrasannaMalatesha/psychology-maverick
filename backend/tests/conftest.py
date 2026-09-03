@@ -37,7 +37,8 @@ def settings(pg) -> Settings:
 
 @pytest.fixture(scope="session")
 def client(settings):
-    app = create_app(settings)
+    # FakeGateway makes the HTTP seam deterministic and offline (no model calls).
+    app = create_app(settings, gateway=FakeGateway())
     with TestClient(app) as c:  # context-manager runs lifespan -> ensure_pgvector + init_store
         yield c
 
