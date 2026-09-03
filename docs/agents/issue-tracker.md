@@ -2,10 +2,9 @@
 
 Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
 
-> **Setup status (2026-09-03):** this repo is not yet a GitHub repo — no `git init`, no remote, and
-> `gh` is not authenticated in the current environment. Until that scaffolding lands (HANDOFF ADR-0009),
-> the skills cannot publish here; written specs are committed under `docs/specs/` in the meantime. Once
-> the repo is on GitHub and `gh auth login` is done, the conventions below apply as written.
+> **Setup status (2026-09-03):** live at `PrasannaMalatesha/psychology-maverick` (public). `gh` is
+> authenticated and the five triage labels exist. Skills can publish here now. Written specs are also
+> kept under `docs/specs/` as durable, reviewable documents.
 
 ## Conventions
 

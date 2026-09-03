@@ -7,9 +7,8 @@ Repo-level guidance for Claude Code. Product truth lives in `PRODUCT.md` / `proj
 
 ### Issue tracker
 
-Issues and specs are tracked as **GitHub issues**, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
-_(Prerequisite: this repo is not on GitHub yet — `git init`, create the remote, and authenticate `gh`
-before the skills can publish. Until then, specs live as files under `docs/specs/`.)_
+Issues and specs are tracked as **GitHub issues** at `PrasannaMalatesha/psychology-maverick`,
+via the `gh` CLI. See `docs/agents/issue-tracker.md`. Written specs are also kept under `docs/specs/`.
 
 ### Triage labels
 
