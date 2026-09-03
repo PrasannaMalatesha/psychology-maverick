@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychology Maverick — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Psychology Maverick auth, MindMarket design system. UX laws applied: labels above inputs,
+   inline errors, >=44px targets, WCAG-AA contrast (stone darkened to #5f605b), visible focus,
+   skip link, main landmark, password reveal with aria. Prototype only — no real submission. */
+:root{
+  --cream:#f5f1e4; --white:#ffffff; --sandstone:#e0dbce;
+  --ink:#2c2e2a; --stone:#5f605b; --mist:#d5d5d4;
+  --grass:#8ed462; --coral:#ff705d; --error:#c0392b;
+  --font:'Inter',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-display:'Bricolage Grotesque','Inter',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --pill:50px; --card:32px; --small:10px; --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box}
+body{margin:0; min-height:100dvh; background:var(--cream); color:var(--ink); font-family:var(--font);
+  font-size:15px; font-weight:500; letter-spacing:-.01em; -webkit-font-smoothing:antialiased}
+::selection{background:var(--grass)}
+a{color:inherit; text-decoration:none}
+button{font-family:inherit; color:inherit; cursor:pointer}
+:focus-visible{outline:2px solid var(--ink); outline-offset:2px; border-radius:6px}
+.skip{position:absolute; left:16px; top:-60px; z-index:60; background:var(--ink); color:var(--white); padding:11px 18px; border-radius:var(--pill); font-weight:600; transition:top .18s var(--ease)}
+.skip:focus{top:16px}
+
+.wrap{display:grid; grid-template-columns:1.05fr 1fr; min-height:100dvh}
+
+/* left brand panel */
+.brandside{padding:40px 56px; display:flex; flex-direction:column; justify-content:flex-start; gap:30px; border-right:1.5px solid var(--ink)}
+.brandside .assurance{margin-top:auto}
+.auth-illus{width:100%; max-width:340px; margin:2px 0}
+.auth-illus svg{width:100%; height:auto; display:block; overflow:visible}
+@media (prefers-reduced-motion:no-preference){
+  .auth-illus .sway{transform-box:fill-box; transform-origin:bottom center; animation:asway 6.4s ease-in-out infinite}
+  @keyframes asway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+  .auth-illus .twinkle{transform-box:fill-box; transform-origin:center; animation:atwk 3.4s ease-in-out infinite}
+  @keyframes atwk{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+}
+.brand{display:flex; align-items:center; gap:11px; font-weight:600; font-size:17px}
+.mk{width:34px;height:34px;border-radius:var(--small);background:var(--grass);border:1.5px solid var(--ink);display:grid;place-items:center;color:var(--ink)}
+.mk svg{width:18px;height:18px}
+.pitch{max-width:15ch}
+.pitch h1{font-family:var(--font-display); font-size:clamp(2.4rem,4vw,3.5rem); line-height:.98; letter-spacing:-.03em; font-weight:600; margin:0 0 20px; text-wrap:balance}
+.pitch h1 em{font-style:normal; position:relative; white-space:nowrap}
+.pitch h1 em::after{content:""; position:absolute; left:0; right:0; bottom:.06em; height:.10em; background:var(--grass); border-radius:var(--pill)}
+.pitch p{font-size:17px; font-weight:400; line-height:1.55; color:var(--stone); max-width:34ch; margin:0}
+.assurance{display:flex; align-items:center; gap:9px; font-size:13px; color:var(--stone); font-weight:400}
+.assurance svg{width:16px;height:16px;color:var(--ink); flex:none}
+
+/* right form panel */
+.formside{display:flex; align-items:center; justify-content:center; padding:40px 32px}
+.card{width:100%; max-width:420px}
+.card > h2{font-family:var(--font-display); font-size:27px; letter-spacing:-.01em; margin:0 0 6px; font-weight:600}
+.card .lede{font-size:15px; color:var(--stone); font-weight:400; margin:0 0 24px}
+
+.tabs{display:flex; gap:4px; background:var(--sandstone); border:1.5px solid var(--ink); border-radius:var(--pill); padding:4px; margin-bottom:26px}
+.tab{flex:1; border:none; background:none; padding:10px; border-radius:var(--pill); font-weight:600; font-size:14px; color:var(--stone); transition:background .18s var(--ease), color .18s var(--ease)}
+.tab[aria-selected="true"]{background:var(--white); color:var(--ink)}
+
+.field{display:flex; flex-direction:column; gap:7px; margin-bottom:16px}
+.field label{font-size:13px; font-weight:600}
+.input-shell{position:relative; display:flex; align-items:center}
+.field input{width:100%; height:48px; padding:0 16px; border:1.5px solid var(--ink); border-radius:var(--small); background:var(--white); font-family:inherit; font-size:15px; font-weight:500; color:var(--ink); transition:border-color .15s, box-shadow .15s}
+.field input::placeholder{color:var(--stone); font-weight:400}
+.field input:focus{outline:none; border-color:var(--grass); box-shadow:0 0 0 3px color-mix(in srgb,var(--grass) 30%,transparent)}
+.field input[aria-invalid="true"]{border-color:var(--error); box-shadow:0 0 0 3px color-mix(in srgb,var(--error) 20%,transparent)}
+.field .hint{font-size:12px; color:var(--stone); font-weight:400}
+.field .err{font-size:12.5px; color:var(--error); font-weight:500; display:none}
+.field.invalid .err{display:block}
+.field.invalid .hint{display:none}
+.reveal{position:absolute; right:8px; width:36px;height:36px; border:none; background:none; border-radius:8px; display:grid; place-items:center; color:var(--stone)}
+.reveal:hover{color:var(--ink); background:var(--cream)}
+.reveal svg{width:18px;height:18px}
+.field:has(.reveal) input{padding-right:48px}
+.row-between{display:flex; align-items:center; justify-content:space-between; margin:-2px 0 22px}
+.row-between a{font-size:13px; font-weight:600; color:var(--ink); text-decoration:underline; text-underline-offset:2px}
+.signup-only{display:none}
+body[data-mode="signup"] .signup-only{display:flex}
+body[data-mode="signup"] .signin-only{display:none}
+
+.btn{width:100%; height:52px; border:1.5px solid var(--ink); border-radius:var(--pill); font-weight:600; font-size:15px; display:flex; align-items:center; justify-content:center; gap:9px; transition:transform .12s var(--ease), background .15s}
+.btn:active{transform:scale(.99)}
+.btn-primary{background:var(--coral); color:var(--white)}
+.btn-primary:hover{background:#ff6047}
+.btn-ghost{background:var(--white); color:var(--ink); margin-top:12px}
+.btn-ghost:hover{background:var(--cream)}
+.btn svg{width:18px;height:18px}
+.divider{display:flex; align-items:center; gap:14px; margin:22px 0; color:var(--stone); font-size:12px; font-weight:400}
+.divider::before,.divider::after{content:""; height:1.5px; background:var(--mist); flex:1}
+.legal{margin:24px 0 0; font-size:12px; color:var(--stone); font-weight:400; line-height:1.5; text-align:center}
+.legal a{color:var(--ink); text-decoration:underline; text-underline-offset:2px}
+.demo{margin-top:18px; font-family:var(--font-mono); font-size:11.5px; letter-spacing:-.01em; color:var(--stone); font-weight:400; text-align:center; display:flex; align-items:center; justify-content:center; gap:7px}
+.demo svg{width:13px;height:13px}
+.back{display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:600; color:var(--stone); text-decoration:none}
+.back:hover{color:var(--ink)}
+.back svg{width:15px;height:15px}
+
+@media (max-width:860px){
+  .wrap{grid-template-columns:1fr}
+  .brandside{border-right:none; border-bottom:1.5px solid var(--ink); padding:28px 24px; gap:26px}
+  .pitch h1{font-size:2.1rem} .pitch p{display:none}
+  .auth-illus{display:none}
+  .formside{padding:32px 20px}
+}
+</style>
+</head>
+<body data-mode="signin">
+<a class="skip" href="#authForm">Skip to the form</a>
+<div class="wrap">
+
+  <section class="brandside">
+    <a class="brand" href="landing.html"><span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M12 4h6.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H12"/></svg></span> Psychology Maverick</a>
+    <div class="pitch">
+      <h1>Answers you can <em>check.</em></h1>
+      <p>Sign in to ask about psychology, psychiatry, and mental health, grounded in real sources and cited every time.</p>
+    </div>
+    <div class="auth-illus" aria-hidden="true">
+      <svg viewBox="0 0 320 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="152" cy="258" rx="98" ry="10" fill="#e0dbce"/>
+        <path d="M72 246q8-30 46-32h68q38 2 46 32q2 15-80 15t-80-15Z" fill="#e0dbce" stroke="#2c2e2a" stroke-width="2.4" stroke-linejoin="round"/>
+        <g class="sway">
+          <path d="M152 178C152 152 152 128 152 96" stroke="#7cbe4f" stroke-width="5" stroke-linecap="round"/>
+          <path d="M152 150q-16-3-20-20q18 3 20 20Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.2" stroke-linejoin="round"/>
+          <rect x="118" y="28" width="74" height="56" rx="16" fill="#ffffff" stroke="#2c2e2a" stroke-width="2.4"/>
+          <path d="M142 82l-6 17 22-13Z" fill="#ffffff" stroke="#2c2e2a" stroke-width="2.4" stroke-linejoin="round"/>
+          <rect x="133" y="44" width="44" height="26" rx="8" fill="#eef7e0" stroke="#8ed462" stroke-width="2.4"/>
+          <text x="155" y="63" font-family="Inter,sans-serif" font-size="17" font-weight="600" fill="#2c2e2a" text-anchor="middle">1</text>
+        </g>
+        <path d="M96 210C96 156 116 122 152 122C188 122 208 156 208 210C208 236 182 248 152 248C122 248 96 236 96 210Z" fill="#6fae49" transform="translate(6 8)"/>
+        <path d="M96 210C96 156 116 122 152 122C188 122 208 156 208 210C208 236 182 248 152 248C122 248 96 236 96 210Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.6"/>
+        <circle cx="126" cy="200" r="8" fill="#ff705d" opacity=".85"/>
+        <circle cx="180" cy="200" r="8" fill="#ff705d" opacity=".85"/>
+        <path d="M120 180q9 11 18 0" stroke="#2c2e2a" stroke-width="2.8" stroke-linecap="round"/>
+        <path d="M168 180q9 11 18 0" stroke="#2c2e2a" stroke-width="2.8" stroke-linecap="round"/>
+        <path d="M134 208q18 18 36 0" stroke="#2c2e2a" stroke-width="2.8" stroke-linecap="round"/>
+        <path class="twinkle" d="M244 150q4 16 20 20q-16 4-20 20q-4-16-20-20q16-4 20-20Z" fill="#f5e211" stroke="#2c2e2a" stroke-width="2.2" stroke-linejoin="round" transform="translate(0 -6)"/>
+      </svg>
+    </div>
+    <div class="assurance">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8.3-7 10-4-1.7-7-5.6-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg>
+      Informational only. Never a diagnosis.
+    </div>
+  </section>
+
+  <section class="formside">
+    <div class="card">
+      <a class="back" href="landing.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back to home</a>
+      <h2 style="margin-top:18px" id="cardTitle">Welcome back</h2>
+      <p class="lede" id="cardLede">Sign in to pick up where you left off.</p>
+
+      <div class="tabs" role="tablist" aria-label="Sign in or create an account">
+        <button class="tab" role="tab" id="tabIn" aria-selected="true" aria-controls="authForm">Sign in</button>
+        <button class="tab" role="tab" id="tabUp" aria-selected="false" aria-controls="authForm">Create account</button>
+      </div>
+
+      <form id="authForm" novalidate>
+        <div class="field signup-only" id="fName">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name">
+        </div>
+        <div class="field" id="fEmail">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" aria-describedby="emailHint emailErr">
+          <span class="hint" id="emailHint">We'll use this to sign you in.</span>
+          <span class="err" id="emailErr">Enter a valid email address.</span>
+        </div>
+        <div class="field" id="fPass">
+          <label for="password">Password</label>
+          <div class="input-shell">
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" aria-describedby="passHint passErr">
+            <button type="button" class="reveal" id="reveal" aria-label="Show password" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <span class="hint signup-only" id="passHint">At least 8 characters.</span>
+          <span class="err" id="passErr">Password must be at least 8 characters.</span>
+        </div>
+
+        <div class="row-between signin-only">
+          <span></span>
+          <a href="#reset">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <span class="signin-only">Sign in</span><span class="signup-only">Create account</span>
+        </button>
+        <button type="button" class="btn btn-ghost" id="googleBtn">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M22.5 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2.1-2 3.2-4.9 3.2-7.9z"/><path fill="#34A853" d="M12 23c2.9 0 5.4-1 7.2-2.6l-3.6-2.7c-1 .7-2.3 1-3.6 1-2.8 0-5.1-1.9-6-4.4H2.3v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M6 14.3a6.6 6.6 0 0 1 0-4.2V7.3H2.3a11 11 0 0 0 0 9.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3 .5 4.1 1.6l3.1-3.1A11 11 0 0 0 2.3 7.3L6 10.1c.9-2.5 3.2-4.4 6-4.4z"/></svg>
+          Continue with Google
+        </button>
+      </form>
+
+      <p class="legal">By continuing you agree to the <a href="#terms">Terms</a> and <a href="#privacy">Privacy Notice</a>. This tool is informational and not a substitute for professional care.</p>
+      <p class="demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg> Prototype: any details open the demo. Nothing is stored.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var body=document.body, tabIn=document.getElementById('tabIn'), tabUp=document.getElementById('tabUp');
+  var title=document.getElementById('cardTitle'), lede=document.getElementById('cardLede');
+  var pass=document.getElementById('password');
+  function setMode(m){
+    body.setAttribute('data-mode',m);
+    var up=m==='signup';
+    tabUp.setAttribute('aria-selected',up?'true':'false');
+    tabIn.setAttribute('aria-selected',up?'false':'true');
+    title.textContent=up?'Create your account':'Welcome back';
+    lede.textContent=up?'Start asking grounded questions in a minute.':'Sign in to pick up where you left off.';
+    pass.setAttribute('autocomplete', up?'new-password':'current-password');
+  }
+  tabIn.addEventListener('click',function(){setMode('signin');});
+  tabUp.addEventListener('click',function(){setMode('signup');});
+
+  // password reveal (aria-pressed)
+  var rev=document.getElementById('reveal');
+  rev.addEventListener('click',function(){
+    var show=pass.type==='password'; pass.type=show?'text':'password';
+    rev.setAttribute('aria-pressed',show?'true':'false');
+    rev.setAttribute('aria-label',show?'Hide password':'Show password');
+  });
+
+  // inline validation (error prevention + clear recovery)
+  var email=document.getElementById('email'), fEmail=document.getElementById('fEmail');
+  var fPass=document.getElementById('fPass');
+  function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);}
+  function check(){
+    var ok=true;
+    if(!validEmail(email.value.trim())){ fEmail.classList.add('invalid'); email.setAttribute('aria-invalid','true'); ok=false; }
+    else { fEmail.classList.remove('invalid'); email.removeAttribute('aria-invalid'); }
+    if(pass.value.length<8){ fPass.classList.add('invalid'); pass.setAttribute('aria-invalid','true'); ok=false; }
+    else { fPass.classList.remove('invalid'); pass.removeAttribute('aria-invalid'); }
+    return ok;
+  }
+  email.addEventListener('blur',function(){ if(email.value) check(); });
+
+  document.getElementById('authForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    if(check()){ window.location.href='assistant.html'; }
+    else { (fEmail.classList.contains('invalid')?email:pass).focus(); }
+  });
+  document.getElementById('googleBtn').addEventListener('click',function(){ window.location.href='assistant.html'; });
+})();
+</script>
+</body>
+</html>

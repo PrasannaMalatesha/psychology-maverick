@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Test artifacts
+e2e/test-results/
+e2e/playwright-report/
+e2e/.playwright/
+**/*.snap.new
+
+# Corpus binaries — large + reproducible via data/fetch_corpus.sh (see data/corpus/SOURCES.md)
+data/corpus/**/*.pdf
+
+# Python (backend, once scaffolded)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# JS/TS build output
+dist/
+build/
+.next/
+coverage/

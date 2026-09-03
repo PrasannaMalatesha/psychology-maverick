@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychology Maverick — Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style data-ds="tokens.css">
+/* ============================================================================
+   MindMarket — Design Tokens (single source of truth)
+   Psychology Maverick UI. Every screen sources colour, type, spacing, radius,
+   motion and elevation from THIS file. Do not hard-code values in screens.
+
+   System = "warm storybook, grounded receipts":
+     · Bricolage Grotesque  → display / headings (the storybook voice)
+     · Inter                → body + UI (the reading voice)
+     · JetBrains Mono       → citations, source codes, taxonomic labels (receipts)
+   Cream-paper canvas, surface-stack elevation (no shadows), 50px pills,
+   one structural accent (grass), one action accent (coral).
+   ============================================================================ */
+
+:root {
+  /* ---- Palette (raw) ---- */
+  --color-fresh-grass:   #8ed462;  /* structural brand accent */
+  --color-grass-deep:    #7cbe4f;  /* illustration shade / hover */
+  --color-cream-paper:   #f5f1e4;  /* canvas */
+  --color-cream-hover:   #fff8ec;  /* warm hover on white controls */
+  --color-ink-black:     #2c2e2a;  /* text, borders, icons */
+  --color-pure-white:    #ffffff;  /* elevated surface */
+  --color-sandstone:     #e0dbce;  /* recessed surface */
+  --color-stone-gray:    #5f605b;  /* muted text (WCAG-AA on cream) */
+  --color-stone-soft:    #80827f;  /* decorative grey — non-text only */
+  --color-hairline-mist: #d5d5d4;  /* faint dividers */
+  --color-pure-ink:      #000000;
+  --color-sky-pop:       #2ba0ff;  /* info dot */
+  --color-coral-pop:     #ff705d;  /* action / service */
+  --color-coral-deep:    #ff6047;  /* coral hover */
+  --color-sunshine-pop:  #f5e211;  /* warmth / closing band */
+  --color-danger:        #c0392b;  /* destructive text (sign out, delete) */
+
+  /* ---- Semantic roles (thin, deliberate — accents stay mostly decorative) ---- */
+  --bg:            var(--color-cream-paper);
+  --bg-hover:      var(--color-cream-hover);
+  --surface:       var(--color-pure-white);
+  --surface-sunk:  var(--color-sandstone);
+  --text:          var(--color-ink-black);
+  --text-muted:    var(--color-stone-gray);
+  --border:        var(--color-ink-black);
+  --border-soft:   var(--color-hairline-mist);
+  --accent:        var(--color-fresh-grass); /* structure: strokes, active, confidence, success */
+  --action:        var(--color-coral-pop);   /* the one prominent chromatic action + crisis edge */
+  --info:          var(--color-sky-pop);      /* icon dots only */
+  --danger:        var(--color-danger);
+  --focus-ring:    var(--color-ink-black);
+
+  /* ---- Type families ---- */
+  --font-display: 'Bricolage Grotesque', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans:    'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---- Weights ---- */
+  --w-regular:  400;
+  --w-medium:   500;
+  --w-semibold: 600;
+  --w-bold:     700;
+  --w-display:  600; /* Bricolage default; scale to 700–800 for punch, 400 for airy */
+
+  /* ---- Type scale (size / line-height / tracking / family+weight intent) ----
+     Fluid where the value spans marketing surfaces; fixed for app UI.        */
+  --fs-hero:     clamp(3.4rem, 11vw, 132px);  --lh-hero: .94;   --tr-hero: -.035em;  /* Bricolage 600 — landing h1 */
+  --fs-display:  clamp(2rem, 5vw, 52px);      --lh-display: 1.04; --tr-display: -.025em; /* Bricolage 600 — section lede */
+  --fs-h1:       40px;  --lh-h1: 1.1;   --tr-h1: -.03em;   /* Bricolage 600 */
+  --fs-h2:       31px;  --lh-h2: 1.15;  --tr-h2: -.02em;   /* Bricolage 600 */
+  --fs-h3:       24px;  --lh-h3: 1.2;   --tr-h3: -.02em;   /* Bricolage 600 */
+  --fs-title:    20px;  --lh-title: 1.25; --tr-title: -.01em; /* Inter 600 */
+  --fs-lead:     19px;  --lh-lead: 1.4;  --tr-lead: -.01em;  /* Inter 500/600 */
+  --fs-body-lg:  18px;  --lh-body-lg: 1.55;                 /* Inter 400 */
+  --fs-body:     16px;  --lh-body: 1.6;                     /* Inter 400 — reading */
+  --fs-ui:       15px;  --lh-ui: 1.5;                       /* Inter 500 — default UI */
+  --fs-label:    14px;  --lh-label: 1.4;                    /* Inter 500/600 */
+  --fs-caption:  13px;  --lh-caption: 1.5;                  /* Inter 400 — muted */
+  --fs-micro:    12px;  --lh-micro: 1.4;                    /* Inter 400/600 */
+  --fs-mono:     11.5px; --lh-mono: 1.3; --tr-mono: .08em;  /* JetBrains 500 uppercase — receipts */
+
+  /* ---- Spacing (4px base) ---- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+  --sp-6: 24px; --sp-7: 32px; --sp-8: 40px; --sp-9: 56px; --sp-10: 80px; --sp-11: 120px;
+
+  /* ---- Radii ---- */
+  --r-sm:    6px;
+  --r-chip:  10px;
+  --r-card:  26px;    /* app cards / panels */
+  --r-pill:  50px;    /* buttons, nav, chips, tags */
+  --r-illus: 63.75px; /* illustration containers */
+
+  /* ---- Borders ---- */
+  --bw: 1.5px;        /* the system hairline weight — everything is 1.5px ink */
+
+  /* ---- Motion ---- */
+  --ease-out:  cubic-bezier(.16, 1, .3, 1);
+  --ease-emph: cubic-bezier(.2, 0, 0, 1);
+  --dur-fast: 130ms;  --dur: 220ms;  --dur-slow: 340ms;
+
+  /* ---- Layout ---- */
+  --page-max: 1200px;
+  --read-max: 66ch;
+  --rail-w:   288px;
+
+  /* ---- Floating-chrome glass (nav pills, menus only) ---- */
+  --glass-bg:  rgba(255, 255, 255, .72);
+  --glass-brd: rgba(44, 46, 42, .92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms; }
+}
+
+</style>
+<style data-ds="app.css">
+/* ============================================================================
+   MindMarket — App shell + components  (imports tokens.css)
+   Shared by the signed-in surfaces: assistant, account, settings, library,
+   history. Marketing surfaces (landing) keep their own bespoke sections but
+   read the SAME tokens. Nothing here hard-codes a colour or size.
+   ============================================================================ */
+
+/* ---- Reset / base ---- */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-ui);
+  line-height: var(--lh-ui);
+  font-weight: var(--w-medium);
+  letter-spacing: -.01em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: var(--accent); }
+:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: var(--r-sm); }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3, h4, p { margin: 0; }
+img, svg { display: block; }
+
+/* Custom scrollbars — warm, thin */
+* { scrollbar-width: thin; scrollbar-color: var(--border-soft) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 20px; border: 3px solid transparent; background-clip: content-box; }
+
+/* ---- Live preference hooks (driven by store.js applySettings) ---- */
+/* Reading size: screens opt in by multiplying a base size by var(--read-scale). */
+:root { --read-scale: 1; }
+/* Reduce motion: the Settings toggle forces this app-wide, beyond the OS setting. */
+html[data-reduce-motion="1"] *,
+html[data-reduce-motion="1"] *::before,
+html[data-reduce-motion="1"] *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ---- Icons ---- */
+.ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* ---- Type helpers ---- */
+.display { font-family: var(--font-display); font-weight: var(--w-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--tr-display); }
+.h1 { font-family: var(--font-display); font-weight: var(--w-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--tr-h1); }
+.h2 { font-family: var(--font-display); font-weight: var(--w-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--tr-h2); }
+.h3 { font-family: var(--font-display); font-weight: var(--w-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--tr-h3); }
+.title { font-size: var(--fs-title); line-height: var(--lh-title); font-weight: var(--w-semibold); letter-spacing: var(--tr-title); }
+.lead { font-size: var(--fs-lead); line-height: var(--lh-lead); font-weight: var(--w-regular); }
+.body { font-size: var(--fs-body); line-height: var(--lh-body); font-weight: var(--w-regular); }
+.muted { color: var(--text-muted); }
+.mono { font-family: var(--font-mono); }
+.kicker { font-family: var(--font-mono); font-size: var(--fs-mono); font-weight: var(--w-medium); text-transform: uppercase; letter-spacing: var(--tr-mono); color: var(--text-muted); }
+
+/* ---- Skip link ---- */
+.skip { position: absolute; left: 12px; top: -60px; z-index: 60; background: var(--text); color: var(--surface); padding: 10px 16px; border-radius: var(--r-pill); font-size: var(--fs-label); font-weight: var(--w-semibold); transition: top .18s var(--ease-out); }
+.skip:focus { top: 12px; }
+
+/* ---- Buttons ---- */
+.btn { display: inline-flex; align-items: center; gap: 10px; font-weight: var(--w-semibold); font-size: var(--fs-ui); border-radius: var(--r-pill); padding: 11px 20px; border: var(--bw) solid var(--border); background: var(--surface); color: var(--text); transition: transform var(--dur-fast), background var(--dur-fast); }
+.btn:hover { background: var(--bg-hover); }
+.btn:active { transform: translateY(1px); }
+.btn .ic { font-size: 17px; }
+.btn-primary { background: var(--action); border-color: var(--border); color: var(--surface); }
+.btn-primary:hover { background: var(--color-coral-deep); }
+.btn-ghost { background: transparent; }
+.btn-ghost:hover { background: var(--surface); }
+.btn-sm { padding: 8px 14px; font-size: var(--fs-label); gap: 7px; }
+.btn[aria-disabled="true"], .btn:disabled { background: var(--surface-sunk); color: var(--text-muted); cursor: not-allowed; }
+/* ghost pill with a chromatic icon dot (marketing-style CTA) */
+.btn-dot { padding-right: 12px; }
+.btn-dot .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--info); color: var(--surface); display: grid; place-items: center; }
+.btn-dot .dot .ic { font-size: 13px; transition: transform var(--dur-fast) var(--ease-out); }
+.btn-dot:hover .dot .ic { transform: translateX(3px); }
+
+/* Circular icon button */
+.icon-btn { width: 40px; height: 40px; display: grid; place-items: center; background: var(--surface); border: var(--bw) solid var(--border); border-radius: 50%; color: var(--text); transition: transform var(--dur-fast), background var(--dur-fast); }
+.icon-btn:hover { background: var(--bg-hover); }
+.icon-btn:active { transform: scale(.95); }
+.icon-btn .ic { font-size: 17px; }
+.icon-btn.soft { border-color: var(--border-soft); }
+
+/* ---- Chips, tags, badges ---- */
+.chip { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--r-pill); padding: 10px 16px; font-size: var(--fs-label); font-weight: var(--w-medium); transition: transform var(--dur-fast), background var(--dur-fast); }
+button.chip:hover { background: var(--bg-hover); }
+button.chip:active { transform: scale(.97); }
+.tag { font-family: var(--font-mono); font-size: var(--fs-mono); font-weight: var(--w-medium); text-transform: uppercase; letter-spacing: var(--tr-mono); color: var(--text); border: var(--bw) solid var(--accent); background: var(--bg); border-radius: var(--r-pill); padding: 4px 11px; }
+.badge { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); border: var(--bw) solid var(--border-soft); border-radius: var(--r-pill); padding: 4px 12px; font-weight: var(--w-medium); }
+
+/* ---- Cards ---- */
+.card { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--r-card); padding: 24px 26px; }
+.card.sunk { background: var(--surface-sunk); }
+.card.soft { border-color: var(--border-soft); }
+.card-hover { transition: transform var(--dur-fast), border-color var(--dur-fast); }
+.card-hover:hover { transform: translateY(-3px); border-color: var(--accent); }
+
+/* ---- Inputs ---- */
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field > label { font-size: var(--fs-label); font-weight: var(--w-semibold); }
+.field .hint { font-size: var(--fs-caption); color: var(--text-muted); font-weight: var(--w-regular); }
+.input, .select, .textarea { width: 100%; border: var(--bw) solid var(--border-soft); border-radius: var(--r-chip); background: var(--surface); font-family: inherit; font-size: var(--fs-ui); font-weight: var(--w-medium); color: var(--text); padding: 11px 14px; transition: border-color var(--dur-fast); }
+.input { height: 44px; }
+.textarea { resize: vertical; line-height: 1.5; min-height: 96px; }
+.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); }
+.input::placeholder, .textarea::placeholder { color: var(--text-muted); font-weight: var(--w-regular); }
+.input-icon { position: relative; display: flex; align-items: center; }
+.input-icon .ic { position: absolute; left: 13px; font-size: 16px; color: var(--text-muted); pointer-events: none; }
+.input-icon .input { padding-left: 38px; }
+
+/* Toggle switch */
+.switch { position: relative; display: inline-flex; align-items: center; width: 46px; height: 27px; flex: none; }
+.switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.switch .track { position: absolute; inset: 0; background: var(--surface-sunk); border: var(--bw) solid var(--border); border-radius: var(--r-pill); transition: background var(--dur) var(--ease-out); }
+.switch .thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: var(--surface); border: var(--bw) solid var(--border); border-radius: 50%; transition: transform var(--dur) var(--ease-out); }
+.switch input:checked ~ .track { background: var(--accent); }
+.switch input:checked ~ .thumb { transform: translateX(19px); }
+.switch input:focus-visible ~ .track { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* Segmented control */
+.segmented { display: inline-flex; background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--r-pill); padding: 3px; gap: 2px; }
+.segmented button { border: none; background: none; border-radius: var(--r-pill); padding: 8px 16px; font-size: var(--fs-label); font-weight: var(--w-medium); color: var(--text-muted); transition: background var(--dur-fast), color var(--dur-fast); }
+.segmented button[aria-pressed="true"] { background: var(--text); color: var(--surface); font-weight: var(--w-semibold); }
+
+/* ---- App layout (rail + main) ---- */
+.app { display: grid; grid-template-columns: var(--rail-w) 1fr; height: 100vh; overflow: hidden; }
+.rail { background: var(--bg); border-right: var(--bw) solid var(--border); display: flex; flex-direction: column; min-height: 0; position: relative; }
+.rail .brand { display: flex; align-items: center; gap: 11px; padding: 20px 22px 14px; font-weight: var(--w-semibold); font-size: 16px; }
+.mk { width: 34px; height: 34px; border-radius: var(--r-chip); background: var(--accent); border: var(--bw) solid var(--border); display: grid; place-items: center; color: var(--text); flex: none; }
+.mk .ic { font-size: 18px; }
+.brand .sub { display: block; font-size: 11px; color: var(--text-muted); font-weight: var(--w-regular); margin-top: 1px; }
+
+.rail-nav { padding: 4px 12px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; flex: 1; min-height: 0; }
+.rail-link { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; background: none; border: var(--bw) solid transparent; padding: 10px 14px; border-radius: var(--r-chip); color: var(--text-muted); font-size: var(--fs-label); font-weight: var(--w-medium); position: relative; transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast); }
+.rail-link .ic { font-size: 18px; }
+.rail-link:hover { background: var(--surface); color: var(--text); }
+.rail-link[aria-current="page"] { background: var(--surface); color: var(--text); border-color: var(--border); font-weight: var(--w-semibold); }
+.rail-link[aria-current="page"]::before { content: ""; position: absolute; left: -1.5px; top: 9px; bottom: 9px; width: 4px; border-radius: 4px; background: var(--accent); }
+.rail-group { font-family: var(--font-mono); font-size: var(--fs-mono); text-transform: uppercase; letter-spacing: var(--tr-mono); color: var(--text-muted); padding: 14px 14px 6px; font-weight: var(--w-medium); }
+
+/* Account chip + menu (foot of rail) */
+.rail-foot { border-top: var(--bw) solid var(--border); padding: 12px 14px; position: relative; }
+.account { display: flex; align-items: center; gap: 11px; width: 100%; background: none; border: var(--bw) solid transparent; border-radius: var(--r-chip); padding: 8px 10px; text-align: left; transition: background var(--dur-fast), border-color var(--dur-fast); }
+.account:hover { background: var(--surface); border-color: var(--border-soft); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); border: var(--bw) solid var(--border); display: grid; place-items: center; font-size: 13px; font-weight: var(--w-semibold); color: var(--text); flex: none; }
+.who { font-size: 13px; font-weight: var(--w-semibold); line-height: 1.2; }
+.who span { display: block; font-size: 11px; color: var(--text-muted); font-weight: var(--w-regular); }
+.account .caret { margin-left: auto; color: var(--text-muted); transition: transform var(--dur) var(--ease-out); }
+.account[aria-expanded="true"] .caret { transform: rotate(180deg); }
+.menu { position: absolute; left: 14px; right: 14px; bottom: 70px; background: var(--glass-bg); -webkit-backdrop-filter: blur(18px) saturate(1.7); backdrop-filter: blur(18px) saturate(1.7); box-shadow: inset 0 1px 0 rgba(255,255,255,.7); border: var(--bw) solid var(--glass-brd); border-radius: var(--r-card); padding: 6px; opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); z-index: 40; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .menu { background: var(--surface); } }
+.menu.open { opacity: 1; transform: none; pointer-events: auto; }
+.menu a, .menu button { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; padding: 11px 12px; border-radius: var(--r-chip); font-size: var(--fs-label); font-weight: var(--w-medium); text-align: left; color: var(--text); }
+.menu a:hover, .menu button:hover { background: var(--bg); }
+.menu .ic { font-size: 17px; color: var(--text-muted); }
+.menu .sep { height: var(--bw); background: var(--border-soft); margin: 5px 8px; }
+.menu .danger, .menu .danger .ic { color: var(--danger); }
+
+/* Main column */
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg); overflow: hidden; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 15px 26px; border-bottom: var(--bw) solid var(--border); gap: 12px; flex: none; }
+.topbar .title { font-weight: var(--w-semibold); font-size: 15px; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.topbar .title .tt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar .actions { display: flex; align-items: center; gap: 10px; }
+.menu-btn { display: none; }
+.scroll { flex: 1; overflow-y: auto; min-height: 0; }
+.page { max-width: 900px; margin: 0 auto; padding: 40px 26px 64px; }
+.page-wide { max-width: 1120px; }
+
+/* Page header block */
+.page-head { margin-bottom: 32px; }
+.page-head .kicker { margin-bottom: 12px; display: block; }
+.page-head p { color: var(--text-muted); font-size: var(--fs-body); font-weight: var(--w-regular); margin-top: 10px; max-width: 60ch; }
+
+/* Settings rows */
+.setting-list { display: flex; flex-direction: column; }
+.setting-row { display: flex; align-items: center; gap: 18px; padding: 20px 4px; border-top: var(--bw) solid var(--border-soft); }
+.setting-row:first-child { border-top: none; }
+.setting-row .txt { min-width: 0; }
+.setting-row .txt b { font-size: var(--fs-ui); font-weight: var(--w-semibold); }
+.setting-row .txt p { font-size: var(--fs-caption); color: var(--text-muted); font-weight: var(--w-regular); margin-top: 3px; max-width: 52ch; }
+.setting-row .ctl { margin-left: auto; flex: none; }
+
+/* Toast */
+.toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px); background: var(--text); color: var(--surface); padding: 12px 20px; border-radius: var(--r-pill); font-size: var(--fs-label); font-weight: var(--w-medium); opacity: 0; pointer-events: none; transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out); z-index: 70; display: flex; align-items: center; gap: 9px; }
+.toast .ic { font-size: 16px; color: var(--accent); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Mobile */
+.scrim { display: none; }
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .rail { position: fixed; inset: 0 auto 0 0; width: 286px; z-index: 30; transform: translateX(-100%); transition: transform var(--dur) var(--ease-out); }
+  .app.nav-open .rail { transform: none; }
+  .scrim { position: fixed; inset: 0; background: rgba(44,46,42,.4); z-index: 25; }
+  .app.nav-open .scrim { display: block; }
+  .menu-btn { display: grid; }
+  .page { padding: 28px 18px 48px; }
+}
+
+</style>
+<style>
+  .toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 24px; }
+  .toolbar .input-icon { flex: 1; min-width: 220px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filters .chip[aria-pressed="true"] { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .filters .chip .ic { font-size: 15px; }
+  .sources { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .src { display: flex; flex-direction: column; gap: 12px; }
+  .src .motif { width: 46px; height: 46px; border-radius: var(--r-chip); border: var(--bw) solid var(--border); display: grid; place-items: center; background: var(--bg); }
+  .src .motif .ic { font-size: 22px; }
+  .src h3 { font-size: var(--fs-h3); }
+  .src .cover { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 2px; }
+  .src .cover span { font-size: 12px; color: var(--text-muted); border: var(--bw) solid var(--border-soft); border-radius: var(--r-pill); padding: 3px 10px; font-weight: var(--w-medium); }
+  .src .lic { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); letter-spacing: .01em; margin-top: auto; padding-top: 8px; border-top: var(--bw) solid var(--border-soft); display: flex; align-items: center; gap: 8px; }
+  .src.feat { grid-column: span 2; flex-direction: row; align-items: center; gap: 26px; background: var(--surface-sunk); }
+  .src.feat .motif { width: 60px; height: 60px; }
+  .src.feat .motif .ic { font-size: 28px; }
+  .src.feat h3 { font-size: 34px; font-family: var(--font-display); font-weight: var(--w-display); letter-spacing: -.02em; }
+  .src.feat .lic { border-top: none; padding-top: 0; margin-top: 8px; }
+  .empty-note { grid-column: span 2; text-align: center; color: var(--text-muted); padding: 40px; font-weight: var(--w-regular); }
+  @media (max-width: 720px) { .sources, .src.feat { grid-template-columns: 1fr; } .src.feat { grid-column: auto; flex-direction: column; align-items: flex-start; } }
+</style>
+</head>
+<body data-page="library">
+<a class="skip" href="#main">Skip to library</a>
+<div class="app" id="app">
+  <main class="main" id="main">
+    <header class="topbar">
+      <div class="title">
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open navigation"><svg class="ic"><use href="#ic-menu"/></svg></button>
+        <span class="tt">Library</span>
+      </div>
+      <div class="actions"><span class="badge">6 sources · grounded</span></div>
+    </header>
+
+    <div class="scroll">
+      <div class="page page-wide">
+        <div class="page-head">
+          <span class="kicker">The corpus</span>
+          <h1 class="h1">Every answer traces back to here</h1>
+          <p>Psychology Maverick only speaks from these vetted sources. Nothing is invented — if a question falls outside the library, it says so.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="input-icon">
+            <svg class="ic"><use href="#ic-search"/></svg>
+            <input class="input" id="q" type="search" placeholder="Search sources, topics, licenses" aria-label="Search the library">
+          </div>
+          <div class="filters" role="group" aria-label="Filter by register" id="filters">
+            <button class="chip" aria-pressed="true" data-f="all">All</button>
+            <button class="chip" aria-pressed="false" data-f="textbook">Textbook</button>
+            <button class="chip" aria-pressed="false" data-f="clinical">Clinical</button>
+            <button class="chip" aria-pressed="false" data-f="consumer">Consumer</button>
+            <button class="chip" aria-pressed="false" data-f="reference">Reference</button>
+          </div>
+        </div>
+
+        <div class="sources" id="sources"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script data-ds="icons.js">
+/* ============================================================================
+   MindMarket — Icon System (single source of truth for iconography)
+
+   One coherent stroke set on a 24×24 grid, 1.8 stroke, round caps + joins.
+   Geometry only lives here; colour/size/stroke come from CSS on the host:
+       .ic { width:1em; height:1em; fill:none; stroke:currentColor;
+             stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round }
+
+   USAGE  (self-contained, works over file:// where external <use> is blocked):
+     Load icons.js as the first script in <body>, then reference by id:
+     <svg class="ic"><use href="#ic-heart"/></svg>
+
+   The two icons the previous prototype drew by hand — heart and settings —
+   were off-grid and lopsided; they are replaced here with correct, symmetric
+   geometry (Lucide-derived) so they read cleanly at every size.
+   ============================================================================ */
+(function () {
+  var S = {
+    /* brand + nav */
+    'ic-logo':        '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M12 4h6.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H12"/>',
+    'ic-menu':        '<path d="M4 6h16M4 12h16M4 18h16"/>',
+    'ic-x':           '<path d="M18 6 6 18M6 6l12 12"/>',
+    'ic-plus':        '<path d="M12 5v14M5 12h14"/>',
+    'ic-plus-circle': '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+    'ic-check':       '<path d="M20 6 9 17l-5-5"/>',
+    'ic-check-circle':'<circle cx="12" cy="12" r="9"/><path d="m8.4 12 2.4 2.4 4.8-4.8"/>',
+    'ic-search':      '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+    'ic-filter':      '<path d="M22 3H2l8 9.5V19l4 2v-8.5z"/>',
+    'ic-more':        '<circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/>',
+
+    /* arrows + chevrons */
+    'ic-arrow-right': '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    'ic-arrow-left':  '<path d="M19 12H5M11 18l-6-6 6-6"/>',
+    'ic-arrow-up-right':'<path d="M7 17 17 7"/><path d="M7 7h10v10"/>',
+    'ic-chevron-right':'<path d="m9 6 6 6-6 6"/>',
+    'ic-chevron-left':'<path d="m15 6-6 6 6 6"/>',
+    'ic-chevron-down':'<path d="m6 9 6 6 6-6"/>',
+    'ic-chevron-up':  '<path d="m18 15-6-6-6 6"/>',
+
+    /* people + account */
+    'ic-user':        '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>',
+    'ic-users':       '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.4 3-5 6.5-5s6.5 1.6 6.5 5"/><path d="M16 5.2a3.5 3.5 0 0 1 0 6.6"/><path d="M18 14.7c2.4.5 3.5 2 3.5 5.3"/>',
+    'ic-log-out':     '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+    'ic-key':         '<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 21 2"/><path d="m18 5 3 3"/><path d="m14.5 8.5 3 3"/>',
+
+    /* settings + preferences  (FIXED gear) */
+    'ic-settings':    '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+    'ic-sliders':     '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+    'ic-bell':        '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    'ic-moon':        '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>',
+    'ic-sun':         '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    'ic-eye':         '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+    'ic-eye-off':     '<path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 8 10 8a13.2 13.2 0 0 1-2.2 3.1"/><path d="M6.1 6.1A13.2 13.2 0 0 0 2 12s3.5 8 10 8a9.1 9.1 0 0 0 4-.9"/><path d="M9.5 9.5a3 3 0 0 0 4.2 4.2"/><path d="M2 2l20 20"/>',
+
+    /* content + knowledge */
+    'ic-heart':       '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.5 4.04 3 5.5l7 7z"/>',
+    'ic-shield':      '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    'ic-shield-check':'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+    'ic-info':        '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/>',
+    'ic-alert-triangle':'<path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+    'ic-book-open':   '<path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/>',
+    'ic-database':    '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/>',
+    'ic-message':     '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.7-.7L3 21l1.3-4a8.4 8.4 0 0 1-.8-3.6A8.5 8.5 0 0 1 12 4a8.5 8.5 0 0 1 9 7.5z"/>',
+    'ic-clock':       '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+    'ic-star':        '<path d="M12 3l2.7 5.5 6 .9-4.4 4.2 1 6L12 17.8 6.7 19.6l1-6L3.3 9.4l6-.9z"/>',
+    'ic-sparkle':     '<path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7z"/><path d="M19 15l.6 1.9 1.9.6-1.9.6-.6 1.9-.6-1.9-1.9-.6 1.9-.6z"/>',
+
+    /* actions + io */
+    'ic-send':        '<path d="M5 12h13M13 6l6 6-6 6"/>',
+    'ic-download':    '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+    'ic-trash':       '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="m19 6-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>',
+    'ic-edit':        '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    'ic-copy':        '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+    'ic-external':    '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+    'ic-lock':        '<rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    'ic-mail':        '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/>',
+    'ic-globe':       '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/>'
+  };
+
+  var parts = '<svg aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" data-mm-icons>';
+  for (var id in S) {
+    parts += '<symbol id="' + id + '" viewBox="0 0 24 24">' + S[id] + '</symbol>';
+  }
+  parts += '</svg>';
+
+  function inject() {
+    if (document.querySelector('svg[data-mm-icons]')) return;
+    document.body.insertAdjacentHTML('afterbegin', parts);
+  }
+  if (document.body) inject();
+  else document.addEventListener('DOMContentLoaded', inject);
+})();
+
+</script>
+<script data-ds="store.js">
+/* ============================================================================
+   MindMarket — Shared application state (the thing that makes it an app)
+
+   One source of truth across every screen, persisted in localStorage:
+     · profile   — who is signed in (name, email, joined)   → shell, account, assistant
+     · settings  — preferences that actually take effect      → settings ⇄ assistant
+     · enquiries — what the user has asked                     → assistant → history, account
+
+   window.MMStore is available on every page that includes this file BEFORE its
+   own script. Reads are safe if storage is blocked (private mode) — they fall
+   back to in-memory defaults so the prototype never breaks.
+   ============================================================================ */
+(function () {
+  var KEY = 'pm.v1';
+  var mem = null; // in-memory fallback when localStorage is unavailable
+
+  var DEFAULTS = {
+    profile: { name: 'Reader', email: 'reader@example.com', joined: 'Aug 2026' },
+    settings: {
+      theme: 'system', textsize: 'm', reducemotion: false,
+      length: 'standard', register: 'auto', citations: true,
+      region: 'us', disclaimer: true, updates: false, digest: false, savehistory: true
+    },
+    saved: [],
+    // seeded so history / account are not empty on first run; the assistant
+    // appends to this list as the user asks.
+    enquiries: seed()
+  };
+
+  function daysAgo(n) { return Date.now() - n * 86400000; }
+  function seed() {
+    return [
+      { id: 'e1', q: 'What is the difference between classical and operant conditioning?', ts: daysAgo(0), category: 'Cognitive', register: 'Textbook', sources: 2 },
+      { id: 'e2', q: 'What are the common signs of generalized anxiety?', ts: daysAgo(0), category: 'Clinical', register: 'NIMH', sources: 1 },
+      { id: 'e3', q: 'What is cognitive dissonance?', ts: daysAgo(1), category: 'Social', register: 'Textbook', sources: 1 },
+      { id: 'e4', q: 'How does sleep affect memory consolidation?', ts: daysAgo(1), category: 'Cognitive', register: 'Textbook', sources: 1 },
+      { id: 'e5', q: 'What does the research say about exposure therapy?', ts: daysAgo(3), category: 'Clinical', register: 'NIMH', sources: 2 },
+      { id: 'e6', q: 'What is the bystander effect?', ts: daysAgo(4), category: 'Social', register: 'Textbook', sources: 1 }
+    ];
+  }
+
+  function load() {
+    if (mem) return mem;
+    var data;
+    try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) { data = null; }
+    if (!data) data = JSON.parse(JSON.stringify(DEFAULTS));
+    // shallow-fill any missing top-level keys (forward-compat)
+    for (var k in DEFAULTS) if (!(k in data)) data[k] = DEFAULTS[k];
+    for (var s in DEFAULTS.settings) if (!(s in data.settings)) data.settings[s] = DEFAULTS.settings[s];
+    mem = data;
+    return data;
+  }
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {}
+  }
+
+  var TEXT_SCALE = { s: 0.92, m: 1, l: 1.14 };
+
+  var API = {
+    // ---- profile ----
+    profile: function () { return load().profile; },
+    initial: function () { return (load().profile.name || 'R').trim().charAt(0).toUpperCase() || 'R'; },
+    setProfile: function (patch) { var d = load(); Object.assign(d.profile, patch); persist(); },
+
+    // ---- settings ----
+    settings: function () { return load().settings; },
+    setSetting: function (k, v) { var d = load(); d.settings[k] = v; persist(); this.applySettings(); },
+
+    // apply preference side-effects to the live document (reading size + motion)
+    applySettings: function (doc) {
+      var root = (doc || document).documentElement;
+      var s = load().settings;
+      root.style.setProperty('--read-scale', TEXT_SCALE[s.textsize] || 1);
+      root.setAttribute('data-reduce-motion', s.reducemotion ? '1' : '0');
+    },
+
+    // ---- enquiries ----
+    enquiries: function () { return load().enquiries.slice().sort(function (a, b) { return b.ts - a.ts; }); },
+    addEnquiry: function (q, meta) {
+      var d = load();
+      if (!d.settings.savehistory) return null;
+      var e = { id: 'e' + Date.now(), q: q, ts: Date.now(), category: (meta && meta.category) || 'General', register: (meta && meta.register) || '—', sources: (meta && meta.sources) || 0 };
+      d.enquiries.push(e); persist(); return e;
+    },
+    clearEnquiries: function () { var d = load(); d.enquiries = []; d.saved = []; persist(); },
+
+    // ---- saved answers ----
+    saved: function () { return load().saved; },
+    toggleSaved: function (id) {
+      var d = load(), i = d.saved.indexOf(id);
+      if (i >= 0) d.saved.splice(i, 1); else d.saved.push(id);
+      persist(); return i < 0;
+    },
+
+    // ---- derived ----
+    stats: function () { var d = load(); return { enquiries: d.enquiries.length, saved: d.saved.length, sources: 36 }; },
+
+    // export everything (for Settings → Export)
+    dump: function () { return JSON.stringify(load(), null, 2); },
+    reset: function () { mem = JSON.parse(JSON.stringify(DEFAULTS)); persist(); }
+  };
+
+  window.MMStore = API;
+  // apply reading-size + motion prefs as early as possible to avoid a flash
+  try { API.applySettings(); } catch (e) {}
+})();
+
+</script>
+<script data-ds="shell.js">
+/* ============================================================================
+   MindMarket — App shell renderer
+   Injects the identical rail (brand · nav · account menu) into every signed-in
+   screen so navigation, iconography and account controls never drift.
+
+   USAGE:
+     <body data-page="settings">                       ← active nav key
+       <div class="app"><main class="main">…</main></div>
+       <script src="../../design-system/icons.js"><\/script>
+       <script src="../../design-system/shell.js"><\/script>
+   Optional: window.MM_USER = { name:'Reader', initial:'R', plan:'Signed in' }
+   Exposes: window.MM.toast(message)
+   ============================================================================ */
+(function () {
+  /* Idempotency guard: never mount the rail twice, even if this script is
+     included more than once (a stale inline copy + the built one, an external
+     re-include, etc.). The first run wins; later runs bail. */
+  var appGuard = document.querySelector('.app');
+  if (window.__mmShellMounted || (appGuard && appGuard.querySelector(':scope > .rail'))) return;
+  window.__mmShellMounted = true;
+
+  var p = (window.MMStore && MMStore.profile) ? MMStore.profile() : null;
+  var user = {
+    name: p ? p.name : 'Reader',
+    initial: (window.MMStore && MMStore.initial) ? MMStore.initial() : 'R',
+    plan: 'Signed in'
+  };
+  var page = document.body.getAttribute('data-page') || '';
+
+  var NAV = [
+    { key: 'assistant', label: 'Assistant', href: 'assistant.html', icon: 'ic-message' },
+    { key: 'library',   label: 'Library',   href: 'library.html',   icon: 'ic-book-open' },
+    { key: 'history',   label: 'History',   href: 'history.html',   icon: 'ic-clock' }
+  ];
+  var NAV2 = [
+    { key: 'account',   label: 'Account',   href: 'account.html',   icon: 'ic-user' },
+    { key: 'settings',  label: 'Settings',  href: 'settings.html',  icon: 'ic-settings' }
+  ];
+
+  function svg(id) { return '<svg class="ic"><use href="#' + id + '"/></svg>'; }
+  function link(n) {
+    var cur = n.key === page ? ' aria-current="page"' : '';
+    return '<a class="rail-link" href="' + n.href + '"' + cur + '>' + svg(n.icon) + '<span>' + n.label + '</span></a>';
+  }
+
+  var railHTML =
+    '<aside class="rail" aria-label="Primary">' +
+      '<a class="brand" href="assistant.html" aria-label="Psychology Maverick — home">' +
+        '<span class="mk" aria-hidden="true">' + svg('ic-logo') + '</span>' +
+        '<span>Psychology Maverick<span class="sub">Grounded &amp; cited</span></span>' +
+      '</a>' +
+      '<a class="btn btn-primary" href="assistant.html" style="margin:2px 16px 12px;justify-content:center">' + svg('ic-plus') + 'New enquiry</a>' +
+      '<nav class="rail-nav" aria-label="Sections">' +
+        NAV.map(link).join('') +
+        '<div class="rail-group">Your account</div>' +
+        NAV2.map(link).join('') +
+      '</nav>' +
+      '<div class="rail-foot">' +
+        '<div class="menu" id="acctMenu" role="menu" aria-label="Account">' +
+          '<a role="menuitem" href="account.html">' + svg('ic-user') + 'Account</a>' +
+          '<a role="menuitem" href="settings.html">' + svg('ic-settings') + 'Settings</a>' +
+          '<div class="sep"></div>' +
+          '<a role="menuitem" class="danger" href="auth.html">' + svg('ic-log-out') + 'Sign out</a>' +
+        '</div>' +
+        '<button class="account" id="acctBtn" aria-haspopup="menu" aria-expanded="false">' +
+          '<span class="avatar">' + user.initial + '</span>' +
+          '<span class="who">' + user.name + '<span>' + user.plan + '</span></span>' +
+          '<span class="caret" aria-hidden="true">' + svg('ic-chevron-up') + '</span>' +
+        '</button>' +
+      '</div>' +
+    '</aside>';
+
+  var app = document.querySelector('.app');
+  if (app) {
+    app.insertAdjacentHTML('afterbegin', railHTML);
+    app.insertAdjacentHTML('afterbegin', '<div class="scrim" id="scrim"></div>');
+  }
+
+  /* toast */
+  var toastEl = document.createElement('div');
+  toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite');
+  document.body.appendChild(toastEl);
+  var toastT;
+  function toast(msg, icon) {
+    toastEl.innerHTML = (icon ? svg(icon) : svg('ic-check-circle')) + '<span>' + msg + '</span>';
+    toastEl.classList.add('show'); clearTimeout(toastT);
+    toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 2400);
+  }
+  window.MM = { toast: toast };
+
+  /* account menu */
+  var acctBtn = document.getElementById('acctBtn'), acctMenu = document.getElementById('acctMenu');
+  function closeMenu() { if (!acctMenu) return; acctMenu.classList.remove('open'); acctBtn.setAttribute('aria-expanded', 'false'); }
+  if (acctBtn) {
+    acctBtn.addEventListener('click', function (e) { e.stopPropagation(); var o = acctMenu.classList.toggle('open'); acctBtn.setAttribute('aria-expanded', o ? 'true' : 'false'); });
+    document.addEventListener('click', function (e) { if (acctMenu && !acctMenu.contains(e.target) && e.target !== acctBtn && !acctBtn.contains(e.target)) closeMenu(); });
+  }
+
+  /* mobile drawer */
+  var appEl = document.querySelector('.app'), scrim = document.getElementById('scrim');
+  var menuBtn = document.getElementById('menuBtn');
+  if (menuBtn) menuBtn.addEventListener('click', function () { appEl.classList.add('nav-open'); });
+  if (scrim) scrim.addEventListener('click', function () { appEl.classList.remove('nav-open'); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (acctMenu && acctMenu.classList.contains('open')) { closeMenu(); acctBtn.focus(); return; }
+    if (appEl && appEl.classList.contains('nav-open')) appEl.classList.remove('nav-open');
+  });
+})();
+
+</script>
+<script>
+(function () {
+  var SRC = [
+    { feat: true, icon: 'ic-book-open', reg: 'textbook', title: 'OpenStax, Psychology 2e', cover: ['Learning', 'Memory', 'Social psychology', 'Emotion', 'Development'], lic: 'CC BY 4.0 · openly licensed', blurb: 'The backbone textbook. Peer-reviewed, chapter-and-section granular, and the source behind most conceptual answers.' },
+    { icon: 'ic-shield', reg: 'clinical', title: 'NIMH health topics', cover: ['Anxiety', 'Depression', 'PTSD'], lic: 'Public domain · US gov' },
+    { icon: 'ic-heart', reg: 'consumer', title: 'MedlinePlus', cover: ['Symptoms', 'Coping', 'When to seek help'], lic: 'Public domain · NLM' },
+    { icon: 'ic-database', reg: 'reference', title: 'APA Dictionary of Psychology', cover: ['Definitions', 'Terminology'], lic: 'Reference · cited terms' },
+    { icon: 'ic-globe', reg: 'clinical', title: 'WHO — Mental health', cover: ['Conditions', 'Global guidance'], lic: 'CC BY-NC-SA · WHO' },
+    { icon: 'ic-book-open', reg: 'textbook', title: 'Noba Project', cover: ['Cognition', 'Personality', 'Methods'], lic: 'CC BY-NC-SA 4.0' }
+  ];
+  var host = document.getElementById('sources'), q = document.getElementById('q'), filters = document.getElementById('filters');
+  var state = { f: 'all', q: '' };
+
+  function card(s) {
+    var cover = s.cover.map(function (c) { return '<span>' + c + '</span>'; }).join('');
+    var blurb = s.blurb ? '<p class="body muted" style="max-width:48ch">' + s.blurb + '</p>' : '';
+    var inner =
+      '<span class="motif"><svg class="ic"><use href="#' + s.icon + '"/></svg></span>' +
+      '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">' +
+        '<span class="tag" style="align-self:flex-start">' + s.reg + '</span>' +
+        '<h3>' + s.title + '</h3>' + blurb +
+        '<div class="cover">' + cover + '</div>' +
+        '<div class="lic"><svg class="ic"><use href="#ic-check-circle"/></svg>' + s.lic + '</div>' +
+      '</div>';
+    return '<article class="card card-hover src' + (s.feat ? ' feat' : '') + '">' + inner + '</article>';
+  }
+  function render() {
+    var list = SRC.filter(function (s) {
+      if (state.f !== 'all' && s.reg !== state.f) return false;
+      if (!state.q) return true;
+      var hay = (s.title + ' ' + s.reg + ' ' + s.cover.join(' ') + ' ' + s.lic).toLowerCase();
+      return hay.indexOf(state.q) >= 0;
+    });
+    host.innerHTML = list.length ? list.map(card).join('') : '<div class="empty-note">No sources match — try “anxiety”, “textbook”, or clear the filter.</div>';
+  }
+  filters.addEventListener('click', function (e) {
+    var b = e.target.closest('.chip'); if (!b) return;
+    filters.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', 'false'); });
+    b.setAttribute('aria-pressed', 'true'); state.f = b.dataset.f; render();
+  });
+  q.addEventListener('input', function () { state.q = q.value.trim().toLowerCase(); render(); });
+  host.addEventListener('click', function (e) { if (e.target.closest('.src')) MM.toast('Source browser is coming in the build', 'ic-book-open'); });
+  render();
+})();
+</script>
+</body>
+</html>

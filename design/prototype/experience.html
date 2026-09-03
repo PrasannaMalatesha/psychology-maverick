@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Psychology Maverick — The Corpus, Mapped</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --grass:#8ed462; --sky:#2ba0ff; --coral:#ff705d; --sun:#f5e211; --cream:#f5f1e4;
+  --ink:#0e0d09;
+  --font-display:'Bricolage Grotesque','Inter',sans-serif;
+  --font-body:'Inter',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease-out:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%; margin:0}
+body{
+  background:radial-gradient(120% 90% at 50% 32%, #23211a 0%, #17150f 46%, #0d0c08 100%);
+  color:var(--cream); font-family:var(--font-body); overflow:hidden;
+  -webkit-font-smoothing:antialiased; letter-spacing:-.01em;
+}
+::selection{background:var(--grass); color:var(--ink)}
+a{color:inherit; text-decoration:none}
+button{font-family:inherit; color:inherit; cursor:pointer}
+:focus-visible{outline:2px solid var(--grass); outline-offset:3px; border-radius:8px}
+
+#scene{position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none}
+
+/* overlay chrome — pointer-events pass through except on controls */
+.overlay{position:fixed; inset:0; z-index:2; pointer-events:none;
+  display:grid; grid-template-rows:auto 1fr auto;
+  padding:clamp(18px,3vw,34px); gap:16px}
+.overlay a,.overlay button{pointer-events:auto}
+
+/* top row */
+.top{display:flex; align-items:center; justify-content:space-between; gap:14px}
+.brand{display:inline-flex; align-items:center; gap:11px; font-weight:500; font-size:15px;
+  background:rgba(245,241,228,.06); border:1px solid rgba(245,241,228,.16);
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  padding:9px 16px 9px 11px; border-radius:50px}
+.brand .mk{width:30px;height:30px;border-radius:9px;background:var(--grass);
+  display:grid;place-items:center;color:var(--ink); flex:none}
+.brand .mk svg{width:16px;height:16px}
+.back{display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono);
+  font-size:12px; letter-spacing:.02em; color:rgba(245,241,228,.7);
+  padding:10px 16px; border-radius:50px; border:1px solid rgba(245,241,228,.16);
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  transition:color .18s var(--ease-out), border-color .18s}
+.back:hover{color:var(--cream); border-color:rgba(245,241,228,.4)}
+.back svg{width:14px;height:14px}
+
+/* center content */
+.mid{display:flex; flex-direction:column; justify-content:center; max-width:min(660px,92vw)}
+.mid h1{font-family:var(--font-display); font-weight:600;
+  font-size:clamp(2.6rem,7vw,5.6rem); line-height:.98; letter-spacing:-.035em;
+  margin:0 0 22px; text-wrap:balance}
+.mid h1 .u{position:relative; white-space:nowrap}
+.mid h1 .u::after{content:""; position:absolute; left:0; right:0; bottom:.06em; height:.07em;
+  background:var(--grass); border-radius:50px}
+.mid p{font-size:clamp(1rem,1.6vw,1.18rem); font-weight:400; line-height:1.55;
+  color:rgba(245,241,228,.74); max-width:46ch; margin:0 0 30px; text-wrap:pretty}
+.cta-row{display:flex; align-items:center; gap:18px; flex-wrap:wrap}
+.cta{display:inline-flex; align-items:center; gap:11px; font-weight:500; font-size:15px;
+  background:var(--coral); color:#fff; padding:14px 16px 14px 24px; border-radius:50px;
+  border:1px solid rgba(0,0,0,.15); transition:transform .14s var(--ease-out), background .18s}
+.cta .dot{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.22);
+  display:grid;place-items:center}
+.cta .dot svg{width:14px;height:14px; transition:transform .16s var(--ease-out)}
+.cta:hover{background:#ff6047} .cta:hover .dot svg{transform:translateX(3px)} .cta:active{transform:scale(.98)}
+.ghost{font-family:var(--font-mono); font-size:12.5px; letter-spacing:.02em;
+  color:rgba(245,241,228,.6); border-bottom:1px solid rgba(245,241,228,.3); padding-bottom:3px;
+  transition:color .18s}
+.ghost:hover{color:var(--cream)}
+
+/* bottom row — legend + hint */
+.bottom{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap}
+.legend{display:flex; gap:8px 20px; flex-wrap:wrap; font-family:var(--font-mono);
+  font-size:11.5px; letter-spacing:.04em; color:rgba(245,241,228,.62); text-transform:uppercase}
+.legend span{display:inline-flex; align-items:center; gap:8px; white-space:nowrap}
+.legend i{width:9px;height:9px;border-radius:50%; box-shadow:0 0 10px 1px currentColor}
+.hint{font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:rgba(245,241,228,.4); display:inline-flex; align-items:center; gap:9px; white-space:nowrap}
+.hint .ring{width:16px;height:16px;border-radius:50%;border:1px solid rgba(245,241,228,.35); position:relative}
+.hint .ring::after{content:""; position:absolute; width:4px;height:4px;border-radius:50%; background:var(--grass); top:-2px; left:50%; margin-left:-2px}
+@media (prefers-reduced-motion:no-preference){ .hint .ring{animation:spin 5s linear infinite} @keyframes spin{to{transform:rotate(360deg)}} }
+
+/* loading + fallback */
+.loading{position:fixed; inset:0; z-index:3; display:grid; place-items:center;
+  font-family:var(--font-mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(245,241,228,.5); transition:opacity .5s var(--ease-out)}
+.loading.gone{opacity:0; pointer-events:none}
+.loading .pulse{display:inline-flex; gap:6px; margin-left:12px}
+.loading .pulse i{width:6px;height:6px;border-radius:50%;background:var(--grass)}
+@media (prefers-reduced-motion:no-preference){
+  .loading .pulse i{animation:lp 1s infinite}
+  .loading .pulse i:nth-child(2){animation-delay:.15s} .loading .pulse i:nth-child(3){animation-delay:.3s}
+  @keyframes lp{0%,100%{opacity:.25}50%{opacity:1}}
+}
+.fallback{display:none}
+body.no-webgl{background:radial-gradient(120% 90% at 50% 32%, #23211a 0%, #14130e 60%, #0d0c08 100%)}
+body.no-webgl #scene, body.no-webgl .loading{display:none}
+body.no-webgl .fallback{position:fixed; inset:0; z-index:1; display:grid; place-items:center; padding:24px}
+body.no-webgl .fallback .art{width:min(420px,80vw); opacity:.9}
+
+@media (max-width:640px){
+  .mid p{margin-bottom:24px}
+  .legend{font-size:10.5px; gap:6px 14px}
+  .hint{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<div class="loading" id="loading">Mapping the corpus<span class="pulse"><i></i><i></i><i></i></span></div>
+
+<div class="overlay">
+  <div class="top">
+    <a class="brand" href="landing.html" aria-label="Psychology Maverick — home">
+      <span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M12 4h6.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H12"/></svg></span>
+      Psychology Maverick
+    </a>
+    <a class="back" href="landing.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> HOME</a>
+  </div>
+
+  <div class="mid">
+    <h1>The mind, mapped to its <span class="u">sources</span>.</h1>
+    <p>Psychology Maverick reasons over a web of connected concepts, and every one traces back to a cited passage. Drag to turn the corpus and see how the ideas hold together.</p>
+    <div class="cta-row">
+      <a class="cta" href="auth.html">Open Maverick<span class="dot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></a>
+      <a class="ghost" href="landing.html#how">how grounding works</a>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="legend" aria-hidden="true">
+      <span><i style="color:#8ed462;background:#8ed462"></i>Learning</span>
+      <span><i style="color:#2ba0ff;background:#2ba0ff"></i>Memory</span>
+      <span><i style="color:#ff705d;background:#ff705d"></i>Emotion</span>
+      <span><i style="color:#f5e211;background:#f5e211"></i>Clinical</span>
+      <span><i style="color:#f5f1e4;background:#f5f1e4"></i>Social</span>
+    </div>
+    <div class="hint"><span class="ring"></span>Drag to orbit</div>
+  </div>
+</div>
+
+<div class="fallback">
+  <svg class="art" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A constellation of connected concepts across five domains of the mind.">
+    <g stroke="rgba(245,241,228,.18)" stroke-width="1">
+      <path d="M90 90 140 140M140 140 210 110M210 110 300 150M300 150 250 210M250 210 150 220M150 220 90 90M140 140 150 220M210 110 250 210"/>
+    </g>
+    <circle cx="90" cy="90" r="7" fill="#8ed462"/><circle cx="140" cy="140" r="9" fill="#2ba0ff"/>
+    <circle cx="210" cy="110" r="6" fill="#ff705d"/><circle cx="300" cy="150" r="8" fill="#f5e211"/>
+    <circle cx="250" cy="210" r="7" fill="#f5f1e4"/><circle cx="150" cy="220" r="6" fill="#8ed462"/>
+  </svg>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isMobile = matchMedia('(max-width:760px)').matches;
+const canvas = document.getElementById('scene');
+const loadingEl = document.getElementById('loading');
+
+let renderer;
+try{
+  renderer = new THREE.WebGLRenderer({ canvas, antialias:!isMobile, alpha:true, powerPreference:'high-performance' });
+}catch(err){ document.body.classList.add('no-webgl'); throw err; }
+const DPR = Math.min(devicePixelRatio||1, 2);
+renderer.setPixelRatio(DPR);
+renderer.setSize(innerWidth, innerHeight);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x14130e, 0.032);
+
+const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 120);
+camera.position.set(0, 0.4, 15);
+
+// ---- brand-coloured domains (mirrors the corpus categories) ----
+const DOMAINS = [
+  { name:'Learning', color:0x8ed462, center:new THREE.Vector3(-5.2, 1.6, 0.4) },
+  { name:'Memory',   color:0x2ba0ff, center:new THREE.Vector3( 4.6, 2.4,-1.8) },
+  { name:'Emotion',  color:0xff705d, center:new THREE.Vector3(-3.0,-3.0, 2.0) },
+  { name:'Clinical', color:0xf5e211, center:new THREE.Vector3( 3.6,-2.6, 1.4) },
+  { name:'Social',   color:0xf5f1e4, center:new THREE.Vector3( 0.2, 0.3,-3.8) },
+];
+const PER = isMobile ? 34 : 58;
+
+const world = new THREE.Group();
+scene.add(world);
+
+// nodes
+const nodes = [];
+const tmp = new THREE.Vector3();
+DOMAINS.forEach((d, di)=>{
+  // one bright hub per domain
+  nodes.push({ pos:d.center.clone(), color:d.color, hub:true, di });
+  for(let i=0;i<PER;i++){
+    const rad = 2.6 * Math.cbrt(Math.random());
+    tmp.set(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize().multiplyScalar(rad);
+    nodes.push({ pos:d.center.clone().add(tmp.clone()), color:d.color, hub:false, di });
+  }
+});
+
+// points (round sprites, additive, per-vertex colour + size)
+function discTexture(){
+  const s=64, cv=document.createElement('canvas'); cv.width=cv.height=s;
+  const x=cv.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.45,'rgba(255,255,255,.85)'); g.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle=g; x.beginPath(); x.arc(s/2,s/2,s/2,0,Math.PI*2); x.fill();
+  const t=new THREE.CanvasTexture(cv); t.needsUpdate=true; return t;
+}
+const N = nodes.length;
+const pos = new Float32Array(N*3), col = new Float32Array(N*3), siz = new Float32Array(N);
+const home = new Float32Array(N*3);
+const c = new THREE.Color();
+nodes.forEach((n,i)=>{
+  pos[i*3]=home[i*3]=n.pos.x; pos[i*3+1]=home[i*3+1]=n.pos.y; pos[i*3+2]=home[i*3+2]=n.pos.z;
+  c.setHex(n.color); col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
+  siz[i]= n.hub ? 3.4 : (0.7 + Math.random()*0.85);
+});
+const pgeo = new THREE.BufferGeometry();
+pgeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+pgeo.setAttribute('color', new THREE.BufferAttribute(col,3));
+pgeo.setAttribute('aSize', new THREE.BufferAttribute(siz,1));
+const pmat = new THREE.ShaderMaterial({
+  uniforms:{ uTex:{value:discTexture()}, uScale:{value: 210*DPR}, uT:{value:0} },
+  vertexColors:true, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+  vertexShader:`
+    attribute float aSize; varying vec3 vC; uniform float uScale; uniform float uT;
+    void main(){ vC=color;
+      vec4 mv = modelViewMatrix * vec4(position,1.0);
+      float tw = 0.82 + 0.18*sin(uT*1.6 + position.x*1.3 + position.y*0.7);
+      gl_PointSize = clamp(aSize * tw * (uScale / -mv.z), 1.0, 96.0);
+      gl_Position = projectionMatrix * mv; }`,
+  fragmentShader:`
+    uniform sampler2D uTex; varying vec3 vC;
+    void main(){ vec4 t = texture2D(uTex, gl_PointCoord); if(t.a<0.02) discard;
+      gl_FragColor = vec4(vC, t.a); }`
+});
+// ShaderMaterial with vertexColors needs the color attribute recognised:
+pmat.vertexColors = true;
+world.add(new THREE.Points(pgeo, pmat));
+
+// edges — connect near neighbours, capped degree, brighter for hubs
+const lp=[], lc=[]; const MAX=3.4;
+for(let i=0;i<N;i++){
+  let deg=0; const maxDeg = nodes[i].hub ? 10 : 3;
+  for(let j=i+1;j<N && deg<maxDeg;j++){
+    const a=nodes[i].pos, b=nodes[j].pos;
+    const d=a.distanceTo(b);
+    if(d<MAX){
+      lp.push(a.x,a.y,a.z, b.x,b.y,b.z);
+      c.setHex(nodes[i].color); lc.push(c.r,c.g,c.b);
+      c.setHex(nodes[j].color); lc.push(c.r,c.g,c.b);
+      deg++;
+    }
+  }
+}
+const lgeo=new THREE.BufferGeometry();
+lgeo.setAttribute('position', new THREE.Float32BufferAttribute(lp,3));
+lgeo.setAttribute('color', new THREE.Float32BufferAttribute(lc,3));
+const lmat=new THREE.LineBasicMaterial({ vertexColors:true, transparent:true, opacity:0.12, blending:THREE.AdditiveBlending, depthWrite:false });
+world.add(new THREE.LineSegments(lgeo, lmat));
+
+// ---- post-processing: bloom + vignette + fxaa ----
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), isMobile?0.5:0.62, 0.42, 0.22);
+composer.addPass(bloom);
+const vig = new ShaderPass(VignetteShader); vig.uniforms.offset.value=1.05; vig.uniforms.darkness.value=1.25;
+composer.addPass(vig);
+let fxaa=null;
+if(!isMobile){
+  fxaa = new ShaderPass(FXAAShader);
+  fxaa.material.uniforms.resolution.value.set(1/(innerWidth*DPR), 1/(innerHeight*DPR));
+  composer.addPass(fxaa);
+}
+
+// ---- controls ----
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableZoom=false; controls.enablePan=false; controls.enableDamping=true; controls.dampingFactor=0.07;
+controls.rotateSpeed=0.55; controls.autoRotate=!reduce; controls.autoRotateSpeed=0.55;
+controls.target.set(0,0,0);
+
+addEventListener('resize', ()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight);
+  bloom.resolution.set(innerWidth,innerHeight);
+  if(fxaa) fxaa.material.uniforms.resolution.value.set(1/(innerWidth*DPR),1/(innerHeight*DPR));
+}, {passive:true});
+
+// ---- animate ----
+const clock=new THREE.Clock(); let first=true;
+function tick(){
+  const t=clock.getElapsedTime();
+  pmat.uniforms.uT.value=t;
+  if(!reduce){
+    world.rotation.y = t*0.035;
+    world.rotation.x = Math.sin(t*0.12)*0.06;
+  }
+  controls.update();
+  composer.render();
+  if(first){ first=false; loadingEl.classList.add('gone'); }
+  requestAnimationFrame(tick);
+}
+tick();
+
+// safety net: if nothing rendered (blocked CDN etc.), reveal fallback
+setTimeout(()=>{ if(first){ document.body.classList.add('no-webgl'); } }, 6500);
+</script>
+</body>
+</html>

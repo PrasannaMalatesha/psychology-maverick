@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychology Maverick — Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Psychology Maverick assistant — WORKING interactive prototype in the MindMarket design system.
+   Live controls: New enquiry (empty state), composer (type + Enter -> thinking -> grounded answer),
+   search (filters case files), account chip (menu -> sign out), citation expand, conversation switch.
+   Simulated responses from a small canned matcher (crisis / conditioning / anxiety / memory /
+   dissonance / insufficient-context). No backend. UX laws + a11y from prior passes retained. */
+:root{
+  --cream:#f5f1e4; --white:#ffffff; --sandstone:#e0dbce;
+  --ink:#2c2e2a; --stone:#5f605b; --mist:#d5d5d4;
+  --grass:#8ed462; --coral:#ff705d; --error:#c0392b;
+  --font:'Inter',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-display:'Bricolage Grotesque','Inter',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --pill:50px; --card:26px; --chip:10px; --ease:cubic-bezier(.16,1,.3,1);
+  --glass-bg:rgba(255,255,255,.72); --glass-brd:rgba(44,46,42,.92);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0; background:var(--cream); color:var(--ink); font-family:var(--font);
+  font-size:15px; line-height:1.5; font-weight:500; letter-spacing:-.01em; -webkit-font-smoothing:antialiased}
+::selection{background:var(--grass)}
+:focus-visible{outline:2px solid var(--ink); outline-offset:2px; border-radius:6px}
+button{font-family:inherit; color:inherit; cursor:pointer}
+*{scrollbar-width:thin; scrollbar-color:var(--mist) transparent}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-thumb{background:var(--mist); border-radius:20px; border:3px solid transparent; background-clip:content-box}
+.skip{position:absolute; left:12px; top:-60px; z-index:60; background:var(--ink); color:var(--white); padding:10px 16px; border-radius:var(--pill); font-size:14px; font-weight:600; transition:top .18s var(--ease)}
+.skip:focus{top:12px}
+
+.app{display:grid; grid-template-columns:288px 1fr; height:100vh; overflow:hidden}
+
+/* rail */
+.rail{background:var(--cream); border-right:1.5px solid var(--ink); display:flex; flex-direction:column; min-height:0; position:relative}
+.brand{display:flex; align-items:center; gap:11px; padding:20px 22px 12px; font-weight:600; font-size:16px}
+.mk{width:34px;height:34px;border-radius:var(--chip);background:var(--grass);border:1.5px solid var(--ink);display:grid;place-items:center;color:var(--ink);flex:none}
+.mk svg{width:18px;height:18px}
+.brand .sub{display:block; font-size:11px; color:var(--stone); font-weight:400; margin-top:1px}
+.new-case{margin:2px 16px 10px; display:flex; align-items:center; gap:9px; width:calc(100% - 32px); padding:11px 16px; background:var(--white); border:1.5px solid var(--ink); border-radius:var(--pill); font-weight:600; font-size:14px; transition:transform .12s var(--ease), background .15s}
+.new-case:hover{background:#fff8ec}
+.new-case:active{transform:scale(.98)}
+.new-case svg{width:16px;height:16px}
+.searchbox{margin:0 16px 8px; position:relative; display:flex; align-items:center}
+.searchbox svg{position:absolute; left:13px; width:16px;height:16px; color:var(--stone); pointer-events:none}
+.searchbox input{width:100%; height:40px; padding:0 14px 0 36px; border:1.5px solid var(--mist); border-radius:var(--pill); background:var(--white); font-family:inherit; font-size:14px; font-weight:500; color:var(--ink)}
+.searchbox input:focus{outline:none; border-color:var(--grass)}
+.searchbox input::placeholder{color:var(--stone); font-weight:400}
+.rail-scroll{overflow-y:auto; padding:4px 12px 16px; min-height:0; flex:1}
+.rail-group{font-size:12px; color:var(--stone); font-weight:600; padding:12px 12px 6px}
+.file{display:block; width:100%; text-align:left; background:none; border:1.5px solid transparent; padding:10px 14px; border-radius:var(--chip); color:var(--stone); font-size:14px; line-height:1.35; position:relative; transition:background .15s, border-color .15s}
+.file:hover{background:var(--white)}
+.file[aria-current="true"]{background:var(--white); color:var(--ink); border-color:var(--ink)}
+.file[aria-current="true"]::before{content:""; position:absolute; left:-1.5px; top:9px; bottom:9px; width:4px; border-radius:4px; background:var(--grass)}
+.file .meta{display:block; font-size:12px; color:var(--stone); margin-top:3px; font-weight:400}
+.rail-empty{padding:14px; color:var(--stone); font-size:13px; font-weight:400}
+
+/* account chip + menu */
+.rail-foot{border-top:1.5px solid var(--ink); padding:12px 14px; position:relative}
+.account{display:flex; align-items:center; gap:11px; width:100%; background:none; border:1.5px solid transparent; border-radius:var(--chip); padding:8px 10px; text-align:left; transition:background .15s, border-color .15s}
+.account:hover{background:var(--white); border-color:var(--mist)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--grass);border:1.5px solid var(--ink);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--ink);flex:none}
+.who{font-size:13px;font-weight:600;line-height:1.2}
+.who span{display:block;font-size:11px;color:var(--stone);font-weight:400}
+.account .caret{margin-left:auto; color:var(--stone); transition:transform .18s var(--ease)}
+.account[aria-expanded="true"] .caret{transform:rotate(180deg)}
+.menu{position:absolute; left:14px; right:14px; bottom:70px; background:var(--glass-bg); -webkit-backdrop-filter:blur(18px) saturate(1.7); backdrop-filter:blur(18px) saturate(1.7); box-shadow:inset 0 1px 0 rgba(255,255,255,.7); border:1.5px solid var(--glass-brd); border-radius:var(--card); padding:6px; opacity:0; transform:translateY(8px); pointer-events:none; transition:opacity .16s var(--ease), transform .16s var(--ease); z-index:40}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){ .menu{background:var(--white)} }
+.menu.open{opacity:1; transform:none; pointer-events:auto}
+.menu button{display:flex; align-items:center; gap:10px; width:100%; background:none; border:none; padding:11px 12px; border-radius:var(--chip); font-size:14px; font-weight:500; text-align:left}
+.menu button:hover{background:var(--cream)}
+.menu button svg{width:17px;height:17px; color:var(--stone)}
+.menu .sep{height:1.5px; background:var(--mist); margin:5px 8px}
+.menu .danger{color:var(--error)} .menu .danger svg{color:var(--error)}
+
+/* main */
+.main{display:flex; flex-direction:column; min-width:0; min-height:0; background:var(--cream)}
+.topbar{display:flex; align-items:center; justify-content:space-between; padding:15px 26px; border-bottom:1.5px solid var(--ink); gap:12px}
+.topbar .title{font-weight:600; font-size:15px; display:flex; align-items:center; gap:12px; min-width:0}
+.topbar .title .tt{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.topbar .title .badge{font-size:12px; color:var(--stone); border:1.5px solid var(--mist); border-radius:var(--pill); padding:4px 12px; font-weight:500; flex:none}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;background:var(--white);border:1.5px solid var(--ink);border-radius:50%;color:var(--ink); flex:none; transition:transform .12s var(--ease), background .15s}
+.icon-btn:hover{background:#fff8ec} .icon-btn:active{transform:scale(.95)}
+.icon-btn svg{width:17px;height:17px}
+.menu-btn{display:none}
+
+.thread-wrap{flex:1; overflow-y:auto; min-height:0; transition:opacity .16s var(--ease)}
+.thread-wrap.swapping{opacity:0; transition:opacity .12s var(--ease)}
+.thread{max-width:1060px; margin:0 auto; padding:32px 26px 40px}
+
+/* empty state */
+.empty{max-width:640px; margin:0 auto; padding:8vh 26px 40px; text-align:center}
+.empty .glyph{width:150px;margin:0 auto 20px;display:block}
+.empty .glyph svg{width:100%;height:auto;display:block;overflow:visible}
+@media (prefers-reduced-motion:no-preference){
+  .empty .glyph .sway{transform-box:fill-box;transform-origin:bottom center;animation:esway 6s ease-in-out infinite}
+  @keyframes esway{0%,100%{transform:rotate(-2.4deg)}50%{transform:rotate(2.4deg)}}
+  .empty .glyph .twinkle{transform-box:fill-box;transform-origin:center;animation:etwk 3.4s ease-in-out infinite}
+  @keyframes etwk{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
+}
+.empty h2{font-family:var(--font-display); font-size:31px; letter-spacing:-.02em; margin:0 0 10px; font-weight:600; text-wrap:balance}
+.empty p{font-size:16px; font-weight:400; color:var(--stone); margin:0 0 26px}
+.chips{display:flex; flex-wrap:wrap; gap:10px; justify-content:center}
+.chip{background:var(--white); border:1.5px solid var(--ink); border-radius:var(--pill); padding:10px 16px; font-size:14px; font-weight:500; transition:transform .12s var(--ease), background .15s}
+.chip:hover{background:#fff8ec} .chip:active{transform:scale(.97)}
+
+/* exchange */
+.exchange{margin-bottom:38px}
+.q{display:flex; gap:14px; align-items:flex-start; margin-bottom:18px}
+.q .tag{flex:none; margin-top:3px; font-size:11px; color:var(--ink); border:1.5px solid var(--grass); border-radius:var(--pill); padding:4px 11px; background:var(--cream); font-weight:600}
+.q p{margin:0; font-size:19px; line-height:1.35; font-weight:600}
+
+.record{display:grid; grid-template-columns:minmax(0,1fr) 268px; background:var(--white); border:1.5px solid var(--ink); border-radius:var(--card); overflow:hidden}
+.record.solo{grid-template-columns:1fr}
+.answer{padding:28px 32px 24px; min-width:0}
+.answer .prose{font-size:calc(16px * var(--read-scale,1)); line-height:1.62; font-weight:400; max-width:66ch}
+.answer .prose p{margin:0 0 1em} .answer .prose p:last-child{margin-bottom:0}
+.answer .prose strong{font-weight:600}
+.answer .lead{font-size:calc(17px * var(--read-scale,1))}
+.cite{position:relative; font-size:.7em; font-weight:600; color:var(--ink); background:var(--cream); border:1.5px solid var(--grass); border-radius:5px; padding:1px 5px; margin:0 1px; vertical-align:.28em; line-height:1; cursor:pointer; transition:background .12s var(--ease)}
+.cite::after{content:""; position:absolute; inset:-8px}
+.cite:hover,.cite.active{background:var(--grass)}
+.stamp{margin-top:20px; padding-top:14px; border-top:1.5px solid var(--mist); display:flex; flex-wrap:wrap; gap:18px; font-size:12px; color:var(--stone); font-weight:400}
+.stamp b{color:var(--ink); font-weight:600}
+.stamp .k{text-transform:uppercase; letter-spacing:.08em; font-size:10.5px}
+.conf{display:inline-flex; align-items:center; gap:5px}
+.conf i{width:7px;height:7px;border-radius:50%;background:var(--mist)}
+.conf.high i:nth-child(-n+3){background:var(--grass)}
+.conf.med i:nth-child(-n+2){background:var(--grass)}
+.margins{border-left:1.5px solid var(--mist); background:var(--cream); padding:22px 18px; display:flex; flex-direction:column; gap:12px}
+.margins h3{margin:0 0 4px; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--stone); font-weight:600}
+.note{border:1.5px solid var(--ink); background:var(--white); border-radius:var(--chip); padding:12px 13px; transition:border-color .15s}
+.note.active{border-color:var(--grass)}
+.note-head{display:flex; align-items:center; gap:9px; width:100%; background:none; border:none; padding:0; text-align:left}
+.note .num{flex:none; font-size:12px; font-weight:600; color:var(--ink); width:22px;height:22px; border:1.5px solid var(--grass); border-radius:6px; display:grid; place-items:center; background:var(--cream)}
+.note .src{font-size:13px; font-weight:600; line-height:1.25}
+.note .reg{display:block; font-size:11px; color:var(--stone); margin-top:2px; font-weight:400}
+.note .chev{margin-left:auto; color:var(--stone); transition:transform .22s var(--ease); flex:none}
+.note.open .chev{transform:rotate(90deg)}
+.note .chev svg{width:14px;height:14px;display:block}
+.note .body{display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows .28s var(--ease), opacity .2s ease}
+.note .body-inner{overflow:hidden; padding-top:9px}
+.note.open .body{grid-template-rows:1fr; opacity:1}
+.note .loc{font-size:12px; color:var(--stone); margin:0 0 6px; font-weight:400}
+.note blockquote{margin:0; font-size:13px; line-height:1.5; font-weight:400; color:var(--ink); padding-left:10px; border-left:2px solid var(--grass)}
+.disclaimer{margin:14px 0 0; background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--chip); padding:12px 14px 12px 44px; position:relative; font-size:14px; font-weight:400; line-height:1.5}
+.disclaimer .tab{position:absolute; left:14px; top:12px; color:var(--coral)}
+.disclaimer .tab svg{width:20px;height:20px;display:block}
+.disclaimer b{font-weight:600}
+
+/* mono voice — citations, source codes, taxonomic labels (the "receipts") */
+.topbar .title .badge,.q .tag,.cite,.stamp .k,.margins h3,.note .num,.note .reg,.note .loc,.answer.empty-ans .estamp{font-family:var(--font-mono)}
+.topbar .title .badge{text-transform:uppercase; letter-spacing:.06em; font-size:11px}
+.topbar .title .badge.badge-safety{color:var(--coral); border-color:var(--coral)}
+.topbar .title .badge.badge-outside{color:var(--stone); border-color:var(--mist)}
+.q .tag{text-transform:uppercase; letter-spacing:.08em}
+.note .reg{letter-spacing:.02em}
+.note .loc,.answer .src .t span{letter-spacing:-.01em}
+
+/* insufficient */
+.answer.empty-ans{background:var(--sandstone); text-align:center; padding:32px 40px}
+.answer.empty-ans .estamp{display:inline-block; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--stone); border:1.5px dashed var(--ink); border-radius:var(--pill); padding:7px 16px; margin-bottom:14px; font-weight:600}
+.answer.empty-ans p{font-size:16px; line-height:1.6; font-weight:400; color:var(--ink); max-width:52ch; margin:0 auto}
+
+/* crisis */
+.crisis{background:var(--white); border:1.5px solid var(--coral); border-radius:var(--card); padding:26px 30px}
+.crisis .ch{display:flex; align-items:center; gap:12px; margin-bottom:12px}
+.crisis .ch .ic{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--coral);display:grid;place-items:center;color:var(--coral); flex:none}
+.crisis .ch .ic svg{width:20px;height:20px}
+.crisis .ch h3{margin:0; font-size:18px; font-weight:600}
+.crisis p{margin:0 0 16px; font-size:16px; line-height:1.55; font-weight:400; max-width:60ch}
+.res{display:flex; flex-wrap:wrap; gap:10px}
+.res a{display:flex; flex-direction:column; gap:1px; text-decoration:none; background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--pill); padding:12px 20px; transition:transform .12s var(--ease), border-color .15s}
+.res a:hover{border-color:var(--coral); transform:translateY(-1px)}
+.res .big{font-weight:600; font-size:15px; color:var(--ink)}
+.res .small{font-size:12px; color:var(--stone); font-weight:400}
+
+/* thinking skeleton */
+.skel .line{height:13px; border-radius:6px; background:var(--sandstone); margin-bottom:12px}
+.skel .line.w1{width:92%} .skel .line.w2{width:78%} .skel .line.w3{width:64%}
+.thinking-label{display:flex; align-items:center; gap:9px; font-size:13px; color:var(--stone); font-weight:500; margin-bottom:16px}
+.thinking-label .pips{display:inline-flex; gap:4px}
+.thinking-label .pips i{width:6px;height:6px;border-radius:50%;background:var(--grass)}
+@media (prefers-reduced-motion:no-preference){
+  .skel .line{background:linear-gradient(90deg,var(--sandstone) 25%,#eae4d5 50%,var(--sandstone) 75%); background-size:200% 100%; animation:shimmer 1.3s infinite}
+  @keyframes shimmer{to{background-position:-200% 0}}
+  .thinking-label .pips i{animation:blink 1s infinite}
+  .thinking-label .pips i:nth-child(2){animation-delay:.15s} .thinking-label .pips i:nth-child(3){animation-delay:.3s}
+  @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+  .exchange{opacity:0; transform:translateY(8px); animation:enter .22s var(--ease) forwards}
+  .record.is-crisis .crisis, .record.is-crisis{}
+  .exchange.is-crisis{animation:none}
+  .exchange.is-crisis .crisis{opacity:0; transform:translateY(6px); animation:crisisEnter .3s var(--ease) forwards}
+  @keyframes enter{to{opacity:1; transform:none}}
+  @keyframes crisisEnter{to{opacity:1; transform:none}}
+}
+@media (prefers-reduced-motion:reduce){ .exchange,.exchange.is-crisis .crisis{opacity:1; transform:none} .thread-wrap.swapping{opacity:1} }
+
+/* composer */
+.composer-wrap{border-top:1.5px solid var(--ink); padding:16px 26px 20px}
+.composer{max-width:1060px; margin:0 auto; background:var(--white); border:1.5px solid var(--ink); border-radius:var(--card); display:flex; align-items:flex-end; gap:10px; padding:8px 8px 8px 18px; transition:border-color .15s}
+.composer:focus-within{border-color:var(--grass)}
+.composer textarea{flex:1; border:none; background:none; resize:none; font-family:inherit; font-size:15px; font-weight:400; line-height:1.5; color:var(--ink); padding:10px 0; max-height:140px; outline:none}
+.composer textarea::placeholder{color:var(--stone)}
+.send{flex:none; width:42px;height:42px; border:1.5px solid var(--ink); border-radius:50%; background:var(--coral); color:var(--white); display:grid; place-items:center; transition:transform .12s var(--ease), background .15s}
+.send:hover{background:#ff6047} .send:active{transform:scale(.95)}
+.send[aria-disabled="true"]{background:var(--sandstone); color:var(--stone); cursor:not-allowed; border-color:var(--ink)}
+.send svg{width:18px;height:18px}
+.composer-note{max-width:1060px; margin:9px auto 0; font-size:12px; color:var(--stone); text-align:center; font-weight:400; display:flex; align-items:center; justify-content:center; gap:7px}
+.composer-note svg{width:13px;height:13px}
+
+/* toast */
+.toast{position:fixed; left:50%; bottom:26px; transform:translate(-50%,20px); background:var(--ink); color:var(--white); padding:12px 20px; border-radius:var(--pill); font-size:14px; font-weight:500; opacity:0; pointer-events:none; transition:opacity .2s var(--ease), transform .2s var(--ease); z-index:70}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+
+.scrim{display:none}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .rail{position:fixed; inset:0 auto 0 0; width:286px; z-index:30; transform:translateX(-100%); transition:transform .26s var(--ease)}
+  .app.nav-open .rail{transform:none}
+  .scrim{display:none; position:fixed; inset:0; background:rgba(44,46,42,.4); z-index:25}
+  .app.nav-open .scrim{display:block}
+  .menu-btn{display:grid}
+  .record{grid-template-columns:1fr}
+  .margins{border-left:none; border-top:1.5px solid var(--mist)}
+  .q p{font-size:17px}
+  .thread{padding:24px 16px 32px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#composerInput">Skip to the enquiry box</a>
+<div class="app" id="app">
+  <div class="scrim" id="scrim"></div>
+
+  <aside class="rail" aria-label="Your case files">
+    <div class="brand">
+      <span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M12 4h6.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H12"/></svg></span>
+      <div>Psychology Maverick<span class="sub">Grounded &amp; cited</span></div>
+    </div>
+    <button class="new-case" id="newCase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> New enquiry</button>
+    <div class="searchbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="search" type="search" placeholder="Search enquiries" aria-label="Search your enquiries">
+    </div>
+    <div class="rail-scroll"><div id="fileList"></div></div>
+    <div class="rail-foot">
+      <div class="menu" id="acctMenu" role="menu" aria-label="Account">
+        <button role="menuitem" data-act="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> Account</button>
+        <button role="menuitem" data-act="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg> Settings</button>
+        <div class="sep"></div>
+        <button role="menuitem" class="danger" data-act="signout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg> Sign out</button>
+      </div>
+      <button class="account" id="acctBtn" aria-haspopup="menu" aria-expanded="false">
+        <span class="avatar">R</span>
+        <span class="who">Reader<span>Signed in</span></span>
+        <span class="caret" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg></span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="title">
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open case files"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <span class="tt" id="topTitle">New enquiry</span>
+        <span class="badge" id="topBadge">Grounded, cited</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="icon-btn" id="searchBtn" aria-label="Search your enquiries"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+      </div>
+    </header>
+
+    <div class="thread-wrap" id="threadWrap"><div class="thread" id="thread"></div></div>
+
+    <div class="composer-wrap">
+      <form class="composer" id="composerForm">
+        <textarea id="composerInput" rows="1" placeholder="Ask about a concept, condition, or finding…" aria-label="Your enquiry"></textarea>
+        <button type="submit" class="send" id="sendBtn" aria-label="Send enquiry" aria-disabled="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      </form>
+      <div class="composer-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg> Answers are grounded in the corpus and cited. Informational only, not medical advice.</div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script data-ds="store.js">
+/* ============================================================================
+   MindMarket — Shared application state (the thing that makes it an app)
+
+   One source of truth across every screen, persisted in localStorage:
+     · profile   — who is signed in (name, email, joined)   → shell, account, assistant
+     · settings  — preferences that actually take effect      → settings ⇄ assistant
+     · enquiries — what the user has asked                     → assistant → history, account
+
+   window.MMStore is available on every page that includes this file BEFORE its
+   own script. Reads are safe if storage is blocked (private mode) — they fall
+   back to in-memory defaults so the prototype never breaks.
+   ============================================================================ */
+(function () {
+  var KEY = 'pm.v1';
+  var mem = null; // in-memory fallback when localStorage is unavailable
+
+  var DEFAULTS = {
+    profile: { name: 'Reader', email: 'reader@example.com', joined: 'Aug 2026' },
+    settings: {
+      theme: 'system', textsize: 'm', reducemotion: false,
+      length: 'standard', register: 'auto', citations: true,
+      region: 'us', disclaimer: true, updates: false, digest: false, savehistory: true
+    },
+    saved: [],
+    // seeded so history / account are not empty on first run; the assistant
+    // appends to this list as the user asks.
+    enquiries: seed()
+  };
+
+  function daysAgo(n) { return Date.now() - n * 86400000; }
+  function seed() {
+    return [
+      { id: 'e1', q: 'What is the difference between classical and operant conditioning?', ts: daysAgo(0), category: 'Cognitive', register: 'Textbook', sources: 2 },
+      { id: 'e2', q: 'What are the common signs of generalized anxiety?', ts: daysAgo(0), category: 'Clinical', register: 'NIMH', sources: 1 },
+      { id: 'e3', q: 'What is cognitive dissonance?', ts: daysAgo(1), category: 'Social', register: 'Textbook', sources: 1 },
+      { id: 'e4', q: 'How does sleep affect memory consolidation?', ts: daysAgo(1), category: 'Cognitive', register: 'Textbook', sources: 1 },
+      { id: 'e5', q: 'What does the research say about exposure therapy?', ts: daysAgo(3), category: 'Clinical', register: 'NIMH', sources: 2 },
+      { id: 'e6', q: 'What is the bystander effect?', ts: daysAgo(4), category: 'Social', register: 'Textbook', sources: 1 }
+    ];
+  }
+
+  function load() {
+    if (mem) return mem;
+    var data;
+    try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) { data = null; }
+    if (!data) data = JSON.parse(JSON.stringify(DEFAULTS));
+    // shallow-fill any missing top-level keys (forward-compat)
+    for (var k in DEFAULTS) if (!(k in data)) data[k] = DEFAULTS[k];
+    for (var s in DEFAULTS.settings) if (!(s in data.settings)) data.settings[s] = DEFAULTS.settings[s];
+    mem = data;
+    return data;
+  }
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {}
+  }
+
+  var TEXT_SCALE = { s: 0.92, m: 1, l: 1.14 };
+
+  var API = {
+    // ---- profile ----
+    profile: function () { return load().profile; },
+    initial: function () { return (load().profile.name || 'R').trim().charAt(0).toUpperCase() || 'R'; },
+    setProfile: function (patch) { var d = load(); Object.assign(d.profile, patch); persist(); },
+
+    // ---- settings ----
+    settings: function () { return load().settings; },
+    setSetting: function (k, v) { var d = load(); d.settings[k] = v; persist(); this.applySettings(); },
+
+    // apply preference side-effects to the live document (reading size + motion)
+    applySettings: function (doc) {
+      var root = (doc || document).documentElement;
+      var s = load().settings;
+      root.style.setProperty('--read-scale', TEXT_SCALE[s.textsize] || 1);
+      root.setAttribute('data-reduce-motion', s.reducemotion ? '1' : '0');
+    },
+
+    // ---- enquiries ----
+    enquiries: function () { return load().enquiries.slice().sort(function (a, b) { return b.ts - a.ts; }); },
+    addEnquiry: function (q, meta) {
+      var d = load();
+      if (!d.settings.savehistory) return null;
+      var e = { id: 'e' + Date.now(), q: q, ts: Date.now(), category: (meta && meta.category) || 'General', register: (meta && meta.register) || '—', sources: (meta && meta.sources) || 0 };
+      d.enquiries.push(e); persist(); return e;
+    },
+    clearEnquiries: function () { var d = load(); d.enquiries = []; d.saved = []; persist(); },
+
+    // ---- saved answers ----
+    saved: function () { return load().saved; },
+    toggleSaved: function (id) {
+      var d = load(), i = d.saved.indexOf(id);
+      if (i >= 0) d.saved.splice(i, 1); else d.saved.push(id);
+      persist(); return i < 0;
+    },
+
+    // ---- derived ----
+    stats: function () { var d = load(); return { enquiries: d.enquiries.length, saved: d.saved.length, sources: 36 }; },
+
+    // export everything (for Settings → Export)
+    dump: function () { return JSON.stringify(load(), null, 2); },
+    reset: function () { mem = JSON.parse(JSON.stringify(DEFAULTS)); persist(); }
+  };
+
+  window.MMStore = API;
+  // apply reading-size + motion prefs as early as possible to avoid a flash
+  try { API.applySettings(); } catch (e) {}
+})();
+
+</script>
+<script>
+(function(){
+  if(window.MMStore) MMStore.applySettings();           // apply reading size + reduce-motion prefs
+  var lengthPref=(window.MMStore?MMStore.settings().length:'standard');
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches || document.documentElement.getAttribute('data-reduce-motion')==='1';
+  var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+
+  // ---- simulated knowledge base ----
+  function answerFor(qRaw){
+    var q=qRaw.toLowerCase();
+    if(/suicid|kill myself|end my life|don't want to (be here|live)|dont want to (be here|live)|self.harm|hurt myself/.test(q))
+      return {type:'crisis'};
+    if(/classical|operant|conditioning|reinforce|pavlov|skinner/.test(q))
+      return {type:'grounded', category:'Cognitive', register:'Textbook',
+        prose:'<p class="lead">Both are forms of associative learning, but they differ in <strong>what</strong> is associated and the learner\'s role.</p><p><strong>Classical conditioning</strong> links two stimuli: a neutral cue comes to trigger a response after being paired with something that already produces it.<button class="cite" data-k="1">1</button></p><p><strong>Operant conditioning</strong> links a behavior to its consequence. Reinforced behaviors grow more likely; punished ones less so.<button class="cite" data-k="2">2</button></p>',
+        citations:[{k:1,src:'OpenStax, Psychology 2e',reg:'Textbook',loc:'Ch. 6 Learning, section 6.2',quote:'Organisms learn to associate events that repeatedly happen together.'},
+                   {k:2,src:'OpenStax, Psychology 2e',reg:'Textbook',loc:'Ch. 6 Learning, section 6.3',quote:'Organisms learn to associate a behavior and its consequence.'}]};
+    if(/anxiety|anxious|\bgad\b|worry|panic|nervous/.test(q))
+      return {type:'grounded', category:'Clinical', register:'NIMH', clinical:true,
+        prose:'<p class="lead">Generalized anxiety disorder involves persistent, excessive worry that is hard to control and lasts for months.</p><p>People often describe restlessness, tiring easily, trouble concentrating, irritability, muscle tension, and difficulty sleeping. The worry spreads across many everyday things rather than a single cause.<button class="cite" data-k="1">1</button></p>',
+        citations:[{k:1,src:'NIMH brochure',reg:'Consumer health',loc:'Generalized Anxiety Disorder, signs & symptoms',quote:'People with GAD find it difficult to control their worry.'}]};
+    if(/memory|consolidat|forget|recall|remember/.test(q))
+      return {type:'grounded', category:'Cognitive', register:'Textbook',
+        prose:'<p class="lead">Memory consolidation is how fragile new memories become stable over time.</p><p>Newly formed memories are strengthened and reorganized, a process that depends heavily on sleep. This is why rest after learning improves later recall.<button class="cite" data-k="1">1</button></p>',
+        citations:[{k:1,src:'OpenStax, Psychology 2e',reg:'Textbook',loc:'Ch. 8 Memory, section 8.2',quote:'Consolidation is the process of committing new information to long-term memory.'}]};
+    if(/dissonance|conflicting belief|hypocris/.test(q))
+      return {type:'grounded', category:'Social', register:'Textbook',
+        prose:'<p class="lead">Cognitive dissonance is the discomfort of holding two conflicting thoughts, beliefs, or attitudes.</p><p>To reduce it, people often change one of the beliefs or add new ones to justify the conflict, rather than tolerate the tension.<button class="cite" data-k="1">1</button></p>',
+        citations:[{k:1,src:'OpenStax, Psychology 2e',reg:'Textbook',loc:'Ch. 12 Social Psychology, section 12.2',quote:'Cognitive dissonance is psychological discomfort arising from holding conflicting cognitions.'}]};
+    return {type:'insufficient'};
+  }
+
+  // ---- seed state ----
+  var idc=0; function nid(){return 'c'+(++idc);}
+  function seedConv(q){ var a=answerFor(q); return {id:nid(), title:titleFor(q), exchanges:[{q:q, a:a}]}; }
+  function titleFor(q){ q=q.trim().replace(/\?+$/,''); return q.length>42? q.slice(0,42).trim()+'…' : q; }
+  function catMeta(c){ var last=c.exchanges[c.exchanges.length-1]; var a=last&&last.a; if(!a) return c.exchanges.length+' enquiries';
+    var cat=a.category?a.category.toLowerCase():(a.type==='crisis'?'safety':'general'); return c.exchanges.length+' enquir'+(c.exchanges.length>1?'ies':'y')+' · '+cat; }
+
+  var state={ conversations:[], activeId:null, search:'' };
+  // seed the case files from the shared enquiry log (same data History shows), newest first
+  if(window.MMStore){
+    MMStore.enquiries().forEach(function(e){ state.conversations.push(seedConv(e.q)); });
+  }
+  if(state.conversations.length===0){ state.conversations.push(seedConv('What is the difference between classical and operant conditioning?')); }
+  state.activeId=state.conversations[0].id;
+
+  // ---- elements ----
+  var app=document.getElementById('app'), thread=document.getElementById('thread'), tw=document.getElementById('threadWrap');
+  var fileList=document.getElementById('fileList'), topTitle=document.getElementById('topTitle'), topBadge=document.getElementById('topBadge');
+  var ta=document.getElementById('composerInput'), send=document.getElementById('sendBtn'), search=document.getElementById('search');
+  var toastEl=document.getElementById('toast'); var toastT;
+  function toast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(function(){toastEl.classList.remove('show');},2200); }
+  function active(){ return state.conversations.filter(function(c){return c.id===state.activeId;})[0]; }
+
+  // ---- render ----
+  function recordHTML(a, crisisClass){
+    if(a.type==='crisis') return '<div class="crisis" role="alert"><div class="ch"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.5 4.04 3 5.5l7 7z"/></svg></span><h3>You deserve support right now</h3></div><p>It sounds like you are going through something painful. I am not able to help with a crisis, but people are available to talk with you right now, free, confidential, any time.</p><div class="res"><a href="tel:988"><span class="big">Call or text 988</span><span class="small">US, Suicide &amp; Crisis Lifeline</span></a><a href="https://findahelpline.com" target="_blank" rel="noopener"><span class="big">findahelpline.com</span><span class="small">Find a helpline anywhere</span></a></div></div>';
+    if(a.type==='insufficient') return '<div class="record solo"><div class="answer empty-ans"><span class="estamp">Outside this corpus</span><p>Psychology Maverick only answers from its psychology, psychiatry, and mental-health sources. Try a concept, condition, or finding in those fields, for example classical conditioning, generalized anxiety, or memory consolidation.</p></div></div>';
+    // grounded
+    var notes=a.citations.map(function(c){return '<div class="note" data-k="'+c.k+'"><button class="note-head" data-toggle aria-expanded="false"><span class="num">'+c.k+'</span><span><span class="src">'+esc(c.src)+'</span><span class="reg">'+esc(c.reg)+'</span></span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span></button><div class="body"><div class="body-inner"><p class="loc">'+esc(c.loc)+'</p><blockquote>"'+esc(c.quote)+'"</blockquote></div></div></div>';}).join('');
+    var disc=a.clinical? '<div class="disclaimer"><span class="tab" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span><b>Informational, not a diagnosis.</b> This describes what authoritative sources say. It is not a substitute for a qualified professional.</div>':'';
+    var conf='<span class="conf high"><span class="k">Confidence</span> &nbsp;<i></i><i></i><i></i> <b>High</b></span>';
+    // honor the Settings "Answer length" preference: concise keeps just the lead
+    var prose=a.prose;
+    if(lengthPref==='concise'){ var m=a.prose.match(/<p class="lead">[\s\S]*?<\/p>/); if(m) prose=m[0]; }
+    return '<div class="record"><div class="answer"><div class="prose">'+prose+'</div>'+disc+'<div class="stamp"><span><span class="k">Category</span> &nbsp;<b>'+esc(a.category)+'</b></span>'+conf+'<span><span class="k">Register</span> &nbsp;<b>'+esc(a.register)+'</b></span></div></div><aside class="margins"><h3>Sources</h3>'+notes+'</aside></div>';
+  }
+  function skeletonHTML(){
+    return '<div class="record solo"><div class="answer"><div class="thinking-label">Searching the corpus<span class="pips"><i></i><i></i><i></i></span></div><div class="skel"><div class="line w1"></div><div class="line w2"></div><div class="line w1"></div><div class="line w3"></div></div></div></div>';
+  }
+  function exchangeHTML(ex){
+    var q='<div class="q"><span class="tag">Enquiry</span><p>'+esc(ex.q)+'</p></div>';
+    var rec = ex.a===null ? skeletonHTML() : recordHTML(ex.a);
+    var crisis = ex.a && ex.a.type==='crisis';
+    return '<section class="exchange'+(crisis?' is-crisis':'')+'">'+q+rec+'</section>';
+  }
+  function renderThread(){
+    var c=active();
+    topTitle.textContent = c ? c.title : 'New enquiry';
+    if(!c || c.exchanges.length===0){
+      topBadge.style.display='none';
+      thread.innerHTML='<div class="empty"><div class="glyph" aria-hidden="true"><svg viewBox="0 0 160 150" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="80" cy="142" rx="46" ry="5" fill="#e0dbce"/><path d="M40 130q10-16 40-16t40 16q0 10-40 10t-40-10Z" fill="#e0dbce" stroke="#2c2e2a" stroke-width="2.2" stroke-linejoin="round"/><path class="sway" d="M80 54V26" stroke="#7cbe4f" stroke-width="4" stroke-linecap="round"/><path class="sway" d="M80 40q-12-2-15-15q13 2 15 15Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2" stroke-linejoin="round"/><circle class="twinkle" cx="80" cy="18" r="4" fill="#f5e211" stroke="#2c2e2a" stroke-width="2"/><path d="M42 108C42 74 56 52 80 52C104 52 118 74 118 108C118 128 102 138 80 138C58 138 42 128 42 108Z" fill="#6fae49" transform="translate(5 6)"/><path d="M42 108C42 74 56 52 80 52C104 52 118 74 118 108C118 128 102 138 80 138C58 138 42 128 42 108Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.4"/><circle cx="62" cy="110" r="5.5" fill="#ff705d" opacity=".85"/><circle cx="98" cy="110" r="5.5" fill="#ff705d" opacity=".85"/><path d="M58 99q6 8 12 0" stroke="#2c2e2a" stroke-width="2.6" stroke-linecap="round"/><path d="M90 99q6 8 12 0" stroke="#2c2e2a" stroke-width="2.6" stroke-linecap="round"/><path d="M67 115q13 11 26 0" stroke="#2c2e2a" stroke-width="2.6" stroke-linecap="round"/></svg></div><h2>What would you like to understand?</h2><p>Ask about psychology, psychiatry, or mental health. Every answer is grounded in the corpus and cited.</p><div class="chips"><button class="chip">Classical vs operant conditioning</button><button class="chip">Signs of generalized anxiety</button><button class="chip">What is cognitive dissonance?</button></div></div>';
+      return;
+    }
+    topBadge.style.display='';
+    // Badge reflects the CURRENT answer's actual state (visibility of system status).
+    var last=c.exchanges[c.exchanges.length-1], lt=last && last.a ? last.a.type : 'grounded';
+    topBadge.classList.remove('badge-safety','badge-outside');
+    if(lt==='crisis'){ topBadge.textContent='Safety'; topBadge.classList.add('badge-safety'); }
+    else if(lt==='insufficient'){ topBadge.textContent='Outside corpus'; topBadge.classList.add('badge-outside'); }
+    else { topBadge.textContent='Grounded, cited'; }
+    thread.innerHTML=c.exchanges.map(exchangeHTML).join('');
+    tw.scrollTop=tw.scrollHeight;
+  }
+  function renderFiles(){
+    var term=state.search.trim().toLowerCase();
+    var list=state.conversations.filter(function(c){
+      if(!term) return true;
+      var hay=(c.title+' '+c.exchanges.map(function(e){return e.q;}).join(' ')).toLowerCase();
+      return hay.indexOf(term)>=0;   // match the full question text, not the truncated title
+    });
+    if(list.length===0){ fileList.innerHTML='<div class="rail-empty">No enquiries match "'+esc(state.search)+'".</div>'; return; }
+    var groupLabel = term ? 'Results' : 'Recent';
+    fileList.innerHTML='<div class="rail-group">'+groupLabel+'</div>'+list.map(function(c){
+      return '<button class="file" data-id="'+c.id+'"'+(c.id===state.activeId?' aria-current="true"':'')+'>'+esc(c.title)+'<span class="meta">'+esc(catMeta(c))+'</span></button>';
+    }).join('');
+  }
+
+  // ---- actions ----
+  function switchTo(id){
+    if(id===state.activeId){ app.classList.remove('nav-open'); return; }
+    state.activeId=id; renderFiles();
+    app.classList.remove('nav-open');
+    if(reduce){ renderThread(); return; }
+    tw.classList.add('swapping');
+    setTimeout(function(){ renderThread(); tw.classList.remove('swapping'); },130);
+  }
+  function newEnquiry(){
+    var c={id:nid(), title:'New enquiry', exchanges:[]};
+    state.conversations.unshift(c); state.activeId=c.id; state.search=''; search.value='';
+    renderFiles(); renderThread(); app.classList.remove('nav-open');
+    ta.focus();
+  }
+  function ask(q){
+    q=q.trim(); if(!q) return;
+    var c=active();
+    if(!c || c.exchanges.length>0 && c.title!=='New enquiry' && false){}
+    if(!c){ c={id:nid(),title:'New enquiry',exchanges:[]}; state.conversations.unshift(c); state.activeId=c.id; }
+    if(c.title==='New enquiry'){ c.title=titleFor(q); }
+    c.exchanges.push({q:q, a:null});   // pending
+    ta.value=''; ta.style.height='auto'; syncSend(); renderThread(); renderFiles();
+    var delay = reduce?200:850;
+    setTimeout(function(){
+      var a = answerFor(q);
+      c.exchanges[c.exchanges.length-1].a = a;
+      // persist to the shared log so History and Account reflect it (unless
+      // the user turned history saving off in Settings)
+      if(window.MMStore && a.type!=='crisis'){
+        MMStore.addEnquiry(q, {
+          category: a.category || (a.type==='insufficient'?'General':'General'),
+          register: a.register || '—',
+          sources: a.citations ? a.citations.length : 0
+        });
+      }
+      renderThread(); renderFiles();
+    }, delay);
+  }
+
+  // ---- wiring ----
+  document.getElementById('newCase').addEventListener('click',newEnquiry);
+
+  document.getElementById('composerForm').addEventListener('submit',function(e){ e.preventDefault(); ask(ta.value); });
+  function syncSend(){ send.setAttribute('aria-disabled', ta.value.trim()?'false':'true'); }
+  ta.addEventListener('input',function(){ ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,140)+'px'; syncSend(); });
+  ta.addEventListener('keydown',function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); ask(ta.value); } });
+  syncSend();
+
+  // thread delegation: chips, citations, note toggles
+  thread.addEventListener('click',function(e){
+    var chip=e.target.closest('.chip'); if(chip){ ask(chip.textContent); return; }
+    var cite=e.target.closest('.cite');
+    if(cite){
+      var rec=cite.closest('.record'); var note=rec&&rec.querySelector('.note[data-k="'+cite.dataset.k+'"]');
+      if(note){ rec.querySelectorAll('.cite.active').forEach(function(c){if(c!==cite)c.classList.remove('active');});
+        rec.querySelectorAll('.note.active').forEach(function(n){if(n!==note)n.classList.remove('active');});
+        cite.classList.toggle('active'); note.classList.add('active','open');
+        var h=note.querySelector('[data-toggle]'); if(h) h.setAttribute('aria-expanded','true');
+        note.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'}); }
+      return;
+    }
+    var head=e.target.closest('.note-head');
+    if(head){ var open=head.closest('.note').classList.toggle('open'); head.setAttribute('aria-expanded',open?'true':'false'); }
+  });
+
+  // files
+  fileList.addEventListener('click',function(e){ var f=e.target.closest('.file'); if(f) switchTo(f.dataset.id); });
+
+  // search
+  search.addEventListener('input',function(){ state.search=search.value; renderFiles(); });
+  document.getElementById('searchBtn').addEventListener('click',function(){ app.classList.add('nav-open'); search.focus(); search.select(); });
+
+  // account menu
+  var acctBtn=document.getElementById('acctBtn'), acctMenu=document.getElementById('acctMenu');
+  function closeMenu(){ acctMenu.classList.remove('open'); acctBtn.setAttribute('aria-expanded','false'); }
+  acctBtn.addEventListener('click',function(e){ e.stopPropagation(); var open=acctMenu.classList.toggle('open'); acctBtn.setAttribute('aria-expanded',open?'true':'false'); });
+  acctMenu.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; var act=b.dataset.act;
+    if(act==='signout'){ window.location.href='auth.html'; return; }
+    if(act==='account'){ window.location.href='account.html'; return; }
+    if(act==='settings'){ window.location.href='settings.html'; return; }
+    closeMenu();
+  });
+  document.addEventListener('click',function(e){ if(!acctMenu.contains(e.target) && e.target!==acctBtn && !acctBtn.contains(e.target)) closeMenu(); });
+
+  // mobile nav
+  var menuBtn=document.getElementById('menuBtn'), scrim=document.getElementById('scrim');
+  menuBtn.addEventListener('click',function(){app.classList.add('nav-open');});
+  scrim.addEventListener('click',function(){app.classList.remove('nav-open');});
+
+  // Esc: menu -> drawer -> active citation
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape') return;
+    if(acctMenu.classList.contains('open')){ closeMenu(); acctBtn.focus(); return; }
+    if(app.classList.contains('nav-open')){ app.classList.remove('nav-open'); return; }
+    var act=thread.querySelector('.note.active'); if(act){ act.classList.remove('active'); thread.querySelectorAll('.cite.active').forEach(function(c){c.classList.remove('active');}); }
+  });
+
+  // init — reflect the shared profile in the account chip
+  if(window.MMStore){
+    var _p=MMStore.profile();
+    var _av=document.querySelector('.avatar'); if(_av) _av.textContent=MMStore.initial();
+    var _who=document.querySelector('.who'); if(_who && _who.childNodes[0]) _who.childNodes[0].nodeValue=_p.name;
+  }
+  renderFiles(); renderThread();
+  if(!matchMedia('(max-width:900px)').matches) ta.focus();
+})();
+</script>
+</body>
+</html>

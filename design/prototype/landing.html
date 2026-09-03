@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychology Maverick: Grounded answers about the mind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Psychology Maverick landing, implemented in the MindMarket design system (design-system/, DESIGN.md).
+   Warm storybook on cream paper: giant Inter display, grass-green structural accent, 50px pills,
+   surface-stack elevation (no shadows), coral for the service action, yellow closing band.
+   Illustration-led system: character art slots are labeled placeholders (no image tool here). */
+:root{
+  /* MindMarket tokens */
+  --color-fresh-grass:#8ed462; --color-cream-paper:#f5f1e4; --color-ink-black:#2c2e2a;
+  --color-pure-white:#ffffff; --color-sandstone:#e0dbce; --color-stone-gray:#5f605b; /* darkened from #80827f for WCAG AA */
+  --color-hairline-mist:#d5d5d4; --color-pure-ink:#000000; --color-sky-pop:#2ba0ff;
+  --color-coral-pop:#ff705d; --color-sunshine-pop:#f5e211;
+  --font-inter:'Inter',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-display:'Bricolage Grotesque','Inter',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --radius-full:50px; --radius-lg:10px; --radius-illus:63.75px;
+  --page-max:1200px;
+  /* motion tokens (refero) */
+  --ease-out:cubic-bezier(.16,1,.3,1); --ease-emph:cubic-bezier(.2,0,0,1);
+  --dur-fast:130ms; --dur-def:220ms; --dur-slow:340ms;
+  /* glass (floating chrome only) */
+  --glass-bg:rgba(255,255,255,.55); --glass-brd:rgba(44,46,42,.92);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0; background:var(--color-cream-paper); color:var(--color-ink-black);
+  font-family:var(--font-inter); font-size:15px; line-height:1.5; font-weight:500;
+  -webkit-font-smoothing:antialiased; letter-spacing:-.01em}
+::selection{background:var(--color-fresh-grass)}
+:focus-visible{outline:2px solid var(--color-ink-black); outline-offset:3px; border-radius:6px}
+a{color:inherit; text-decoration:none}
+button{font-family:inherit; color:inherit; cursor:pointer}
+.wrap{max-width:var(--page-max); margin:0 auto; padding:0 32px}
+.skip{position:absolute; left:16px; top:-60px; z-index:60; background:var(--color-ink-black); color:var(--color-pure-white); padding:11px 18px; border-radius:var(--radius-full); font-weight:500; transition:top .18s cubic-bezier(.16,1,.3,1)}
+.skip:focus{top:16px}
+
+/* Floating pill nav */
+.nav-outer{position:sticky; top:18px; z-index:40; padding:0 32px; margin-top:18px}
+.nav{max-width:var(--page-max); margin:0 auto;
+  background:var(--glass-bg); -webkit-backdrop-filter:blur(20px) saturate(1.7); backdrop-filter:blur(20px) saturate(1.7);
+  border-radius:var(--radius-full); border:1.5px solid var(--glass-brd);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
+  height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 12px 0 20px;
+  transition:background var(--dur-def) var(--ease-out)}
+.nav.scrolled{background:rgba(255,255,255,.74)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){ .nav{background:var(--color-pure-white)} }
+.brand{display:flex; align-items:center; gap:11px; font-weight:500; font-size:16px}
+.brand .mk{width:34px;height:34px;border-radius:var(--radius-lg);background:var(--color-fresh-grass);
+  border:1.5px solid var(--color-ink-black); display:grid; place-items:center; color:var(--color-ink-black)}
+.brand .mk svg{width:18px;height:18px}
+.nav-links{display:flex; align-items:center; gap:26px}
+.nav-links a{font-size:15px; color:var(--color-ink-black)}
+.nav-links a:hover{border-bottom:1.5px solid var(--color-stone-gray)}
+.menu-btn{width:38px;height:38px;border-radius:50%;background:var(--color-fresh-grass);
+  border:1.5px solid var(--color-ink-black); display:grid; place-items:center; color:var(--color-ink-black)}
+.menu-btn svg{width:17px;height:17px}
+/* Ghost pill CTA with chromatic icon dot */
+.btn{display:inline-flex; align-items:center; gap:10px; font-weight:500; font-size:15px;
+  border-radius:var(--radius-full); padding:11px 12px 11px 20px; border:1.5px solid var(--color-ink-black);
+  background:var(--color-pure-white); color:var(--color-ink-black); transition:transform .12s, background .15s}
+.btn:active{transform:translateY(1px)}
+.btn .dot{width:22px;height:22px;border-radius:50%;background:var(--color-sky-pop);
+  display:grid;place-items:center;color:var(--color-pure-white)}
+.btn .dot svg{width:13px;height:13px; transition:transform var(--dur-fast) var(--ease-out)}
+.btn:hover .dot svg{transform:translateX(3px)}
+.btn:hover{background:var(--color-cream-paper)}
+/* Coral service action (the one prominent chromatic action) */
+.btn-service{background:var(--color-coral-pop); border-color:var(--color-ink-black); color:var(--color-pure-white); padding:14px 16px 14px 26px}
+.btn-service .dot{background:var(--color-pure-white); color:var(--color-coral-pop)}
+.btn-service:hover{background:#ff6047}
+
+/* Hero, type-led */
+.hero{padding:96px 0 40px; text-align:left}
+.hero .wrap{max-width:1120px}
+.hero h1{font-family:var(--font-display); font-weight:600; font-size:clamp(3.4rem,11vw,132px); line-height:.94; letter-spacing:-.035em;
+  margin:0 0 34px; max-width:15ch; text-wrap:balance}
+.hero h1 .grass{color:var(--color-ink-black); position:relative; white-space:nowrap}
+.hero h1 .grass::after{content:""; position:absolute; left:0; right:0; bottom:.08em; height:.09em;
+  background:var(--color-fresh-grass); border-radius:50px;
+  transform:scaleX(0); transform-origin:left; transition:transform .55s cubic-bezier(.16,1,.3,1) .35s}
+.hero h1.in .grass::after{transform:scaleX(1)}
+@media (prefers-reduced-motion:reduce){.hero h1 .grass::after{transform:scaleX(1); transition:none}}
+.hero .sub{font-size:20px; font-weight:400; line-height:1.4; max-width:46ch; margin:0 0 34px; color:var(--color-ink-black)}
+.hero .cta-row{display:flex; align-items:center; gap:20px; flex-wrap:wrap}
+.hero .plain-link{font-size:15px; border-bottom:1.5px solid var(--color-stone-gray); padding-bottom:2px}
+
+/* Hero illustration — paper-cut "mind garden", sits directly on cream, bleeds down */
+.hero-illus{width:100%; max-width:520px; margin:8px 0 -72px auto; display:block}
+.hero-illus svg{width:100%; height:auto; display:block; overflow:visible}
+/* gentle idle sway on the growing stems */
+@media (prefers-reduced-motion:no-preference){
+  .sway{transform-box:fill-box; transform-origin:bottom center; animation:sway 6s ease-in-out infinite}
+  .sway.s2{animation-duration:7.2s; animation-delay:-1.4s} .sway.s3{animation-duration:6.6s; animation-delay:-.7s}
+  @keyframes sway{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
+  .twinkle{transform-box:fill-box; transform-origin:center; animation:twinkle 3.4s ease-in-out infinite}
+  @keyframes twinkle{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+}
+
+/* Paper-cut spot illustrations (steps, sources) */
+.spot{width:76px;height:76px;display:block;margin-bottom:20px}
+.spot svg{width:100%;height:100%;display:block;overflow:visible}
+.src-motif{width:52px;height:52px;display:block;margin-bottom:18px}
+.src-card.feat .src-motif{width:68px;height:68px}
+.src-motif svg{width:100%;height:100%;display:block}
+
+/* Sections */
+section{padding:100px 0}
+.eyebrow-free .lede{font-family:var(--font-display); font-weight:600; font-size:clamp(2rem,5vw,52px); line-height:1.04; letter-spacing:-.025em; margin:0; max-width:18ch; text-wrap:balance}
+.src-card h4,.step h3,.safety-card .h b{font-family:var(--font-display); letter-spacing:-.01em}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center}
+.body{font-size:18px; font-weight:400; line-height:1.55; color:var(--color-ink-black); max-width:52ch; margin:20px 0 0}
+.body.muted{color:var(--color-stone-gray)}
+
+/* White content card */
+.card{background:var(--color-pure-white); border:1.5px solid var(--color-ink-black);
+  border-radius:var(--radius-full); padding:34px 36px}
+.card.answer{max-width:640px}
+.answer .q{font-weight:500; font-size:17px; margin:0 0 16px}
+.answer .a{font-weight:400; font-size:17px; line-height:1.6; margin:0}
+.cite{display:inline-grid; place-items:center; min-width:18px; height:18px; padding:0 5px;
+  border-radius:var(--radius-lg); border:1.5px solid var(--color-fresh-grass); background:var(--color-cream-paper);
+  font-family:var(--font-mono); font-size:11px; font-weight:500; vertical-align:.18em; margin-left:2px}
+.answer .src{margin-top:22px; padding-top:18px; border-top:1.5px solid var(--color-hairline-mist); display:flex; gap:12px; align-items:center}
+.answer .src .n{width:26px;height:26px;flex:none;border-radius:var(--radius-lg);border:1.5px solid var(--color-fresh-grass);
+  background:var(--color-cream-paper);display:grid;place-items:center;font-family:var(--font-mono);font-size:12px;font-weight:500}
+.answer .src .t{font-size:14px;font-weight:500}
+.answer .src .t span{display:block;font-family:var(--font-mono);font-size:12px;color:var(--color-stone-gray);font-weight:400;margin-top:3px;letter-spacing:-.01em}
+
+/* Sliding marquee — example questions */
+.marquee-band{padding:15px 0; border-top:1.5px solid var(--color-ink-black); border-bottom:1.5px solid var(--color-ink-black); background:var(--color-sandstone); overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.marquee{display:flex; width:max-content; gap:14px; will-change:transform; animation:marq 46s linear infinite}
+.marquee-band:hover .marquee{animation-play-state:paused}
+.mq-chip{white-space:nowrap; background:var(--color-pure-white); border:1.5px solid var(--color-ink-black); border-radius:var(--radius-full); padding:10px 20px; font-size:15px; font-weight:500; display:inline-flex; align-items:center; gap:10px}
+.mq-chip::before{content:""; width:8px;height:8px;border-radius:50%; background:var(--color-fresh-grass); flex:none}
+.mq-chip:nth-child(4n+2)::before{background:var(--color-sky-pop)}
+.mq-chip:nth-child(4n+3)::before{background:var(--color-coral-pop)}
+.mq-chip:nth-child(4n+4)::before{background:var(--color-sunshine-pop)}
+@keyframes marq{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){ .marquee{animation:none; flex-wrap:wrap; justify-content:center; width:auto; row-gap:12px} .marquee-band{-webkit-mask-image:none; mask-image:none} }
+
+/* Steps: one card, grouped by green hairlines (not 3 separate boxes) */
+.steps{display:grid; grid-template-columns:repeat(3,1fr); background:var(--color-pure-white);
+  border:1.5px solid var(--color-ink-black); border-radius:var(--radius-full); overflow:hidden; margin-top:40px}
+.step{padding:36px 30px}
+.step + .step{border-left:1.5px solid var(--color-fresh-grass)}
+.step h3{margin:0 0 8px; font-size:20px; font-weight:500}
+.step p{margin:0; font-size:15px; font-weight:400; line-height:1.5; color:var(--color-stone-gray)}
+
+/* Safety: credible, sober within the warm system */
+.safety-card{background:var(--color-pure-white); border:1.5px solid var(--color-coral-pop);
+  border-radius:var(--radius-full); padding:32px 36px}
+.safety-card .h{display:flex; align-items:center; gap:12px; margin-bottom:14px}
+.safety-card .h .ic{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--color-coral-pop);
+  display:grid;place-items:center;color:var(--color-coral-pop)}
+.safety-card .h .ic svg{width:20px;height:20px}
+.safety-card .h b{font-size:18px}
+.safety-card p{margin:0 0 18px; font-size:16px; font-weight:400; line-height:1.55}
+.safety-card .line{display:inline-flex; align-items:center; gap:10px; border:1.5px solid var(--color-ink-black);
+  border-radius:var(--radius-full); padding:11px 20px; font-weight:500; font-size:15px}
+.safety-card .line em{font-style:normal; color:var(--color-stone-gray); font-weight:400; font-size:13px}
+
+/* Sources: asymmetric */
+.sources{display:grid; grid-template-columns:1.4fr 1fr; grid-template-rows:auto auto; gap:18px; margin-top:44px}
+.src-card{background:var(--color-pure-white); border:1.5px solid var(--color-ink-black); border-radius:var(--radius-full); padding:30px 34px; transition:transform .12s, border-color .15s}
+.src-card:hover{transform:translateY(-3px); border-color:var(--color-fresh-grass)}
+.src-card.feat{grid-row:span 2; display:flex; flex-direction:column; justify-content:space-between; min-height:260px}
+.src-card .tag{font-family:var(--font-mono); font-size:11.5px; font-weight:500; text-transform:uppercase; letter-spacing:.1em; color:var(--color-stone-gray); margin-bottom:14px}
+.src-card h4{margin:0 0 8px; font-size:24px; font-weight:500; letter-spacing:-.02em}
+.src-card.feat h4{font-size:40px; letter-spacing:-.03em}
+.src-card p{margin:0; font-size:15px; font-weight:400; line-height:1.5; color:var(--color-stone-gray)}
+.src-card .lic{margin-top:16px; font-family:var(--font-mono); font-size:12px; letter-spacing:.02em; color:var(--color-stone-gray)}
+
+/* Closing */
+.closing{text-align:center}
+.closing-motif{width:92px;height:66px;margin:0 auto 22px;display:block}
+.closing-motif svg{width:100%;height:100%;display:block;overflow:visible}
+.closing .lede{margin:0 auto 26px; text-align:center; max-width:20ch}
+.closing .body{margin:0 auto 34px; text-align:center}
+.closing .cta-row{display:flex; justify-content:center}
+
+/* Yellow footer band */
+footer{background:var(--color-sunshine-pop); border-top:1.5px solid var(--color-ink-black); padding:56px 0 48px}
+footer .wrap{display:flex; align-items:flex-start; justify-content:space-between; gap:28px; flex-wrap:wrap}
+footer .brand{font-size:20px}
+footer .brand .mk{background:var(--color-pure-white)}
+footer .note{font-size:15px; font-weight:400; line-height:1.55; max-width:46ch; color:var(--color-ink-black)}
+footer a.inline{border-bottom:1.5px solid var(--color-ink-black)}
+
+/* reveal */
+[data-reveal]{opacity:0; transform:translateY(18px)}
+[data-reveal].in{opacity:1; transform:none; transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)}
+/* row #4: group stagger for grid children (shorter beat + cascade) */
+[data-reveal].step, [data-reveal].src-card{transform:translateY(14px)}
+[data-reveal].step.in, [data-reveal].src-card.in{transition-duration:.45s}
+[data-reveal].step:nth-child(2), [data-reveal].src-card:nth-child(2){transition-delay:.06s}
+[data-reveal].step:nth-child(3), [data-reveal].src-card:nth-child(3){transition-delay:.12s}
+@media (prefers-reduced-motion:reduce){[data-reveal]{opacity:1; transform:none; transition:none}}
+
+@media (max-width:900px){
+  .two,.sources{grid-template-columns:1fr}
+  .sources{grid-template-rows:none}
+  .src-card.feat{grid-row:auto}
+  .steps{grid-template-columns:1fr}
+  .step + .step{border-left:none; border-top:1.5px solid var(--color-fresh-grass)}
+  .nav-links a:not(.btn):not(.menu-btn){display:none}
+  section{padding:64px 0}
+}
+@media (max-width:560px){
+  .wrap{padding:0 20px} .nav-outer{padding:0 16px} .hero{padding:56px 0 24px}
+  .nav{height:60px; padding:0 10px 0 16px}
+  .nav .menu-btn{display:none}
+  .btn{white-space:nowrap; padding:10px 12px 10px 16px}
+}
+@media (max-width:400px){ .brand .wordmark{display:none} }
+</style>
+</head>
+<body>
+<!-- Real product framing; the assistant it describes runs on synthetic demo content.
+     Hero + section art are hand-authored paper-cut SVG in the MindMarket palette (no external assets). -->
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="nav-outer">
+  <nav class="nav">
+    <a class="brand" href="#top">
+      <span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M12 4h6.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H12"/></svg></span>
+      <span class="wordmark">Psychology Maverick</span>
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="experience.html">Explore</a>
+      <a href="#sources">Sources</a>
+      <button class="menu-btn" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a class="btn" href="auth.html">Open Maverick<span class="dot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></a>
+    </div>
+  </nav>
+</div>
+
+<main id="main">
+<header class="hero" id="top">
+  <div class="wrap">
+    <h1 data-reveal>Grounded answers about the <span class="grass">mind</span>.</h1>
+    <p class="sub" data-reveal>Psychology Maverick answers from real psychology, psychiatry, and mental-health sources, and cites every one. Informational, never a diagnosis.</p>
+    <div class="cta-row" data-reveal>
+      <a class="btn" href="auth.html">Open Maverick<span class="dot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></a>
+      <a class="plain-link" href="experience.html">Explore the corpus map</a>
+    </div>
+    <div class="hero-illus" data-reveal>
+      <svg viewBox="0 0 560 480" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A calm face growing a small garden of a book, a cited note, and a bright idea from a grounded mind.">
+        <defs>
+          <path id="pm-head" d="M176 384C176 300 200 252 280 252C360 252 384 300 384 384C384 420 344 438 280 438C216 438 176 420 176 384Z"/>
+        </defs>
+        <!-- ground + grounded roots -->
+        <ellipse cx="282" cy="456" rx="158" ry="15" fill="#e0dbce"/>
+        <path d="M250 452q-8 12-22 18M282 452v22M314 452q8 12 22 18" stroke="#2c2e2a" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M150 432q10-42 66-46l128 0q56 4 66 46q3 22-130 22t-130-22Z" fill="#e0dbce" stroke="#2c2e2a" stroke-width="2.4" stroke-linejoin="round"/>
+        <!-- growing things (behind the head crown, drawn before the face) -->
+        <g class="sway">
+          <path d="M280 256C278 220 280 190 280 138" stroke="#7cbe4f" stroke-width="5" stroke-linecap="round"/>
+          <path d="M280 206q-18-2-26-20q20-2 26 20Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.2" stroke-linejoin="round"/>
+          <rect x="240" y="58" width="80" height="60" rx="18" fill="#ffffff" stroke="#2c2e2a" stroke-width="2.4"/>
+          <path d="M270 116l-6 18 24-14Z" fill="#ffffff" stroke="#2c2e2a" stroke-width="2.4" stroke-linejoin="round"/>
+          <rect x="256" y="74" width="48" height="30" rx="9" fill="#eef7e0" stroke="#8ed462" stroke-width="2.4"/>
+          <text x="280" y="96" font-family="Inter,sans-serif" font-size="20" font-weight="600" fill="#2c2e2a" text-anchor="middle">1</text>
+        </g>
+        <g class="sway s2">
+          <path d="M250 258C226 232 182 210 152 152" stroke="#7cbe4f" stroke-width="5" stroke-linecap="round"/>
+          <path d="M206 208q-16-6-20-24q18 4 20 24Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.2" stroke-linejoin="round"/>
+          <g transform="rotate(-13 150 120)">
+            <rect x="118" y="94" width="64" height="50" rx="7" fill="#2ba0ff" stroke="#2c2e2a" stroke-width="2.4"/>
+            <rect x="118" y="94" width="15" height="50" rx="7" fill="#1f8fe0" stroke="#2c2e2a" stroke-width="2.4"/>
+            <path d="M143 108h30M143 119h30M143 130h21" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>
+          </g>
+        </g>
+        <g class="sway s3">
+          <path d="M312 258C340 232 380 206 406 178" stroke="#7cbe4f" stroke-width="5" stroke-linecap="round"/>
+          <path d="M360 212q4-16 22-22q-2 18-22 22Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M406 120q7 30 34 34q-27 4-34 34q-7-30-34-34q27-4 34-34Z" fill="#f5e211" stroke="#2c2e2a" stroke-width="2.4" stroke-linejoin="round" class="twinkle"/>
+        </g>
+        <!-- the mind: paper-cut layers -->
+        <use href="#pm-head" x="7" y="9" fill="#6fae49"/>
+        <use href="#pm-head" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.6"/>
+        <!-- calm face -->
+        <circle cx="224" cy="356" r="9" fill="#ff705d" opacity=".85"/>
+        <circle cx="338" cy="356" r="9" fill="#ff705d" opacity=".85"/>
+        <path d="M226 332q11 13 22 0" stroke="#2c2e2a" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <path d="M312 332q11 13 22 0" stroke="#2c2e2a" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <path d="M252 366q28 24 56 0" stroke="#2c2e2a" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <!-- little sky companion + floating leaf -->
+        <g class="twinkle"><circle cx="454" cy="330" r="12" fill="#2ba0ff" stroke="#2c2e2a" stroke-width="2.4"/></g>
+        <path d="M108 300q-16 6-18 24q18-6 18-24Z" fill="#ff705d" stroke="#2c2e2a" stroke-width="2.2" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<section class="eyebrow-free" id="grounded">
+  <div class="wrap two">
+    <div data-reveal>
+      <h2 class="lede">Every claim carries its source.</h2>
+      <p class="body">Ask a question and Psychology Maverick finds the relevant passages first, then answers only from them. Each statement links to a real source you can open. When the library does not cover something, it says so instead of guessing.</p>
+    </div>
+    <div class="card answer" data-reveal>
+      <p class="q">What is the difference between classical and operant conditioning?</p>
+      <p class="a">Classical conditioning links two stimuli, so a neutral cue comes to trigger a response.<span class="cite">1</span> Operant conditioning links a behavior to its consequence, making it more or less likely to recur.<span class="cite">2</span></p>
+      <div class="src">
+        <span class="n">1</span>
+        <span class="t">OpenStax, Psychology 2e<span>Ch. 6 Learning, section 6.2</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee-band" aria-label="Examples of questions people ask Psychology Maverick">
+  <div class="marquee" aria-hidden="true">
+    <span class="mq-chip">What is cognitive dissonance?</span>
+    <span class="mq-chip">Classical vs operant conditioning</span>
+    <span class="mq-chip">Signs of generalized anxiety</span>
+    <span class="mq-chip">How does memory consolidation work?</span>
+    <span class="mq-chip">What is reinforcement?</span>
+    <span class="mq-chip">Why do we forget?</span>
+    <span class="mq-chip">How does stress affect the body?</span>
+    <span class="mq-chip">What is the fight-or-flight response?</span>
+    <span class="mq-chip">What is cognitive dissonance?</span>
+    <span class="mq-chip">Classical vs operant conditioning</span>
+    <span class="mq-chip">Signs of generalized anxiety</span>
+    <span class="mq-chip">How does memory consolidation work?</span>
+    <span class="mq-chip">What is reinforcement?</span>
+    <span class="mq-chip">Why do we forget?</span>
+    <span class="mq-chip">How does stress affect the body?</span>
+    <span class="mq-chip">What is the fight-or-flight response?</span>
+  </div>
+</div>
+
+<section class="eyebrow-free" id="how">
+  <div class="wrap">
+    <h2 class="lede" data-reveal>Three steps, and you can check the work.</h2>
+    <div class="steps">
+      <div class="step" data-reveal>
+        <div class="spot"><svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="30" y="12" width="40" height="30" rx="12" fill="#ffffff" stroke="#2c2e2a" stroke-width="2.6"/>
+          <path d="M56 40l5 13-15-9Z" fill="#ffffff" stroke="#2c2e2a" stroke-width="2.6" stroke-linejoin="round"/>
+          <rect x="10" y="30" width="40" height="30" rx="12" fill="#ff705d" stroke="#2c2e2a" stroke-width="2.6"/>
+          <path d="M24 58l-5 13 15-9Z" fill="#ff705d" stroke="#2c2e2a" stroke-width="2.6" stroke-linejoin="round"/>
+          <circle cx="22" cy="45" r="3.2" fill="#ffffff"/><circle cx="30" cy="45" r="3.2" fill="#ffffff"/><circle cx="38" cy="45" r="3.2" fill="#ffffff"/>
+        </svg></div>
+        <h3>Ask</h3>
+        <p>Put a question in plain words, whether you are studying or trying to understand what you feel.</p>
+      </div>
+      <div class="step" data-reveal>
+        <div class="spot"><svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="12" y="16" width="36" height="48" rx="7" fill="#ffffff" stroke="#2c2e2a" stroke-width="2.6"/>
+          <path d="M20 28h20M20 37h20M20 46h13" stroke="#b7b3a8" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="50" cy="44" r="15" fill="#2ba0ff" fill-opacity=".22"/>
+          <circle cx="50" cy="44" r="15" fill="none" stroke="#2c2e2a" stroke-width="3"/>
+          <path d="M61 55l10 10" stroke="#2c2e2a" stroke-width="4.2" stroke-linecap="round"/>
+        </svg></div>
+        <h3>Retrieve</h3>
+        <p>Psychology Maverick finds the passages that address it, across textbooks, research, and clinical guides.</p>
+      </div>
+      <div class="step" data-reveal>
+        <div class="spot"><svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="14" y="12" width="46" height="52" rx="8" fill="#ffffff" stroke="#2c2e2a" stroke-width="2.6"/>
+          <rect x="22" y="22" width="26" height="17" rx="5.5" fill="#eef7e0" stroke="#8ed462" stroke-width="2.6"/>
+          <text x="35" y="35" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#2c2e2a" text-anchor="middle">1</text>
+          <path d="M22 48h28M22 55h18" stroke="#b7b3a8" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="57" cy="54" r="13" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.6"/>
+          <path d="M51 54l4.5 4.5L64 49" stroke="#2c2e2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg></div>
+        <h3>Cite</h3>
+        <p>It answers only from what it found, and links every claim so you can read further.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="eyebrow-free" id="safety">
+  <div class="wrap two">
+    <div data-reveal>
+      <h2 class="lede">Built to be safe, not only helpful.</h2>
+      <p class="body">Some people arrive in a hard moment. Psychology Maverick explains what authoritative sources say, and never diagnoses or prescribes. If a question signals real distress, it does not reach for the library. It points to people who can help, right away.</p>
+    </div>
+    <div class="safety-card" data-reveal role="note">
+      <div class="h">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.3-9.3-9.2C1.1 8.3 2.8 5 6 5c2 0 3.2 1.1 4 2.3C10.8 6.1 12 5 14 5c3.2 0 4.9 3.3 3.3 6.8C19 16.7 12 21 12 21z"/></svg></span>
+        <b>When it matters most</b>
+      </div>
+      <p>A question that signals crisis skips the corpus entirely and surfaces support first.</p>
+      <div class="line">Call or text 988 <em>US, Suicide and Crisis Lifeline</em></div>
+    </div>
+  </div>
+</section>
+
+<section class="eyebrow-free" id="sources">
+  <div class="wrap">
+    <h2 class="lede" data-reveal>What it reads from.</h2>
+    <p class="body muted" data-reveal>A curated, openly licensed library, not the open internet. That is why answers stay checkable.</p>
+    <div class="sources">
+      <div class="src-card feat" data-reveal>
+        <div>
+          <span class="src-motif"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="9" y="40" width="46" height="15" rx="4" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.4"/><path d="M47 44v7" stroke="#2c2e2a" stroke-width="2"/>
+            <rect x="13" y="25" width="40" height="15" rx="4" fill="#ff705d" stroke="#2c2e2a" stroke-width="2.4"/><path d="M46 29v7" stroke="#2c2e2a" stroke-width="2"/>
+            <rect x="8" y="10" width="43" height="15" rx="4" fill="#2ba0ff" stroke="#2c2e2a" stroke-width="2.4"/><path d="M43 14v7" stroke="#2c2e2a" stroke-width="2"/>
+          </svg></span>
+          <div class="tag">Textbook</div><h4>OpenStax, Psychology 2e</h4><p>A full introductory psychology textbook, the broad and stable ground the assistant reasons from.</p>
+        </div>
+        <div class="lic">CC BY-NC-SA 4.0</div>
+      </div>
+      <div class="src-card" data-reveal>
+        <span class="src-motif"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="13" y="8" width="38" height="48" rx="6" fill="#ffffff" stroke="#2c2e2a" stroke-width="2.4"/>
+          <path d="M21 19h22" stroke="#2c2e2a" stroke-width="2.4" stroke-linecap="round"/>
+          <rect x="21" y="34" width="6" height="14" rx="1.5" fill="#8ed462" stroke="#2c2e2a" stroke-width="1.8"/>
+          <rect x="29" y="27" width="6" height="21" rx="1.5" fill="#2ba0ff" stroke="#2c2e2a" stroke-width="1.8"/>
+          <rect x="37" y="31" width="6" height="17" rx="1.5" fill="#ff705d" stroke="#2c2e2a" stroke-width="1.8"/>
+        </svg></span>
+        <div class="tag">Research</div><h4>PLOS ONE</h4><p>Open-access psychology and psychiatry studies, for what current research reports.</p>
+        <div class="lic">CC BY 4.0</div>
+      </div>
+      <div class="src-card" data-reveal>
+        <span class="src-motif"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="12" y="11" width="40" height="42" rx="9" fill="#f5e211" stroke="#2c2e2a" stroke-width="2.4"/>
+          <path d="M32 44c-10-7-15-11.5-15-19 0-4.6 3.6-7.5 7.4-7.5 2.8 0 4.9 1.5 7.6 4.7 2.7-3.2 4.8-4.7 7.6-4.7 3.8 0 7.4 2.9 7.4 7.5 0 7.5-5 12-15 19Z" fill="#ff705d" stroke="#2c2e2a" stroke-width="2.4" stroke-linejoin="round"/>
+        </svg></span>
+        <div class="tag">Clinical guides</div><h4>NIMH</h4><p>Plain-language mental-health information from the National Institute of Mental Health.</p>
+        <div class="lic">Public domain</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="closing eyebrow-free">
+  <div class="wrap">
+    <span class="closing-motif" data-reveal aria-hidden="true"><svg viewBox="0 0 92 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="46" cy="60" rx="34" ry="5" fill="#e0dbce"/>
+      <path d="M20 48q26-10 52 0q2 11-26 11t-26-11Z" fill="#e0dbce" stroke="#2c2e2a" stroke-width="2.4" stroke-linejoin="round"/>
+      <path class="sway" d="M46 48V20" stroke="#7cbe4f" stroke-width="4.5" stroke-linecap="round"/>
+      <path class="sway" d="M46 30q-15-3-19-18q17 3 19 18Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.2" stroke-linejoin="round"/>
+      <path class="sway s2" d="M46 24q13-5 16-18q-15 3-16 18Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2.2" stroke-linejoin="round"/>
+      <circle class="twinkle" cx="46" cy="14" r="4.5" fill="#f5e211" stroke="#2c2e2a" stroke-width="2.2"/>
+    </svg></span>
+    <h2 class="lede" data-reveal>Ask a question you actually care about.</h2>
+    <p class="body" data-reveal>Concepts for a class, or clarity for yourself. Grounded, cited, and honest about its limits.</p>
+    <div class="cta-row" data-reveal>
+      <a class="btn btn-service" href="auth.html">Open Maverick<span class="dot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></a>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M12 4h6.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H12"/></svg></span>
+      Psychology Maverick
+    </a>
+    <p class="note">A non-commercial, educational project. Informational only, not a substitute for professional care. Answers are drawn from an <a class="inline" href="#sources">openly licensed library</a> and cited.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  // Reveal is an ENHANCEMENT over a visible baseline: anything in (or near) the
+  // viewport reveals immediately on load, so content never depends on the observer
+  // firing. Only below-the-fold elements wait for scroll. A late safety sweep
+  // guarantees nothing can stay permanently hidden if the observer never fires.
+  var reveals=[].slice.call(document.querySelectorAll('[data-reveal]'));
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);}});},{threshold:.12, rootMargin:'0px 0px -6% 0px'});
+  function vh(){return window.innerHeight||document.documentElement.clientHeight;}
+  function sweep(){
+    reveals=reveals.filter(function(el){
+      var r=el.getBoundingClientRect();
+      if(r.top<vh()*0.96 && r.bottom>-40){ el.classList.add('in'); return false; }
+      io.observe(el); return true;
+    });
+  }
+  sweep(); requestAnimationFrame(sweep);
+  setTimeout(function(){ document.querySelectorAll('[data-reveal]:not(.in)').forEach(function(el){el.classList.add('in');}); }, 1600);
+
+  // nav: glass firms up once scrolled; hero illustration drifts (parallax)
+  var nav=document.querySelector('.nav'), illus=document.querySelector('.hero-illus svg'), ticking=false;
+  function onScroll(){
+    var y=window.scrollY||window.pageYOffset;
+    if(nav) nav.classList.toggle('scrolled', y>12);
+    if(illus && !reduce) illus.style.transform='translateY('+Math.min(y*0.12,60)+'px)';
+    ticking=false;
+  }
+  window.addEventListener('scroll',function(){ if(!ticking){ requestAnimationFrame(onScroll); ticking=true; } },{passive:true});
+  onScroll();
+})();
+</script>
+</body>
+</html>
