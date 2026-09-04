@@ -14,17 +14,23 @@ from app.core.config import Settings, get_settings
 from app.core.db import check_health, ensure_pgvector, make_engine
 from app.core.llm.gateway import ModelGateway
 from app.core.llm.production_gateway import ProductionGateway
+from app.core.observability import LangfuseTracer, Tracer
 from app.core.store import init_store
 from app.features.chat.router import router as chat_router
 from app.features.chat.service import ChatService
 from app.features.retrieval.service import RetrievalService
 
 
-def create_app(settings: Settings | None = None, gateway: ModelGateway | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    gateway: ModelGateway | None = None,
+    tracer: Tracer | None = None,
+) -> FastAPI:
     settings = settings or get_settings()
     engine = make_engine(settings.database_url)
     gateway = gateway or ProductionGateway(settings)
-    chat_service = ChatService(RetrievalService(engine, gateway), gateway, settings)
+    tracer = tracer or LangfuseTracer(settings)
+    chat_service = ChatService(RetrievalService(engine, gateway), gateway, settings, tracer)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

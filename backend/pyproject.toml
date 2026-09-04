@@ -20,6 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 embeddings = ["sentence-transformers>=3.0"]
 synthesis = ["litellm>=1.40"]
+tracing = ["langfuse>=2.0"]
 
 [dependency-groups]
 dev = [
