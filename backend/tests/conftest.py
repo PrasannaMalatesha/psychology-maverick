@@ -32,7 +32,10 @@ def pg():
 
 @pytest.fixture(scope="session")
 def settings(pg) -> Settings:
-    return Settings(database_url=pg.get_connection_url())
+    # threshold 0.0: any retrieved passage grounds. The Insufficient-Context branch
+    # is exercised deterministically elsewhere by a high threshold / empty store,
+    # rather than by fighting the fake embeddings' magnitudes.
+    return Settings(database_url=pg.get_connection_url(), grounding_threshold=0.0)
 
 
 @pytest.fixture(scope="session")

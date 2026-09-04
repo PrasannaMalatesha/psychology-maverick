@@ -22,13 +22,16 @@ class ChatService:
 
     def answer(self, query: str) -> Answer:
         passages = self._retrieval.retrieve(query, self._settings.retrieval_top_k)
-        if not passages:
-            # T4 refines this with a grounding threshold; for now, nothing retrieved
-            # means we cannot ground an answer.
+        grounded = [p for p in passages if p.score >= self._settings.grounding_threshold]
+        if not grounded:
+            # Grounded-or-silent (ADR-0004): nothing clears the threshold, so we
+            # decline rather than synthesize from weak or absent evidence.
             return Answer(state=AnswerState.insufficient_context)
 
-        context = "\n\n".join(f"[{i + 1}] {p.text}" for i, p in enumerate(passages))
+        context = "\n\n".join(f"[{i + 1}] {p.text}" for i, p in enumerate(grounded))
         prose = self._gateway.synthesize(context=context, query=query)
+        # Citations are built from the retrieved passages, so no citation can
+        # reference anything outside the retrieved set (no-fabrication by construction).
         citations = [
             Citation(
                 register=p.register,
@@ -36,11 +39,11 @@ class ChatService:
                 locator=p.locator,
                 passage_id=p.passage_id,
             )
-            for p in passages
+            for p in grounded
         ]
         return Answer(
             state=AnswerState.grounded,
-            category=passages[0].category,
+            category=grounded[0].category,
             text=prose,
             citations=citations,
         )

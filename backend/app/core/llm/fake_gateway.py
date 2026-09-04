@@ -1,32 +1,31 @@
 """Deterministic gateway double — the single substituted dependency in tests (ADR-0006).
 
-No network, no cost, fully reproducible: the same input always yields the same
-vector and the same synthesized string.
+Embeddings are token-overlap bags: texts that share words get positive cosine
+similarity, unrelated texts get ~0. That's the minimum fidelity needed to test
+retrieval ordering and the grounding threshold without a real model.
 """
 
 import hashlib
 import math
+import re
 
 from app.core.llm.gateway import EMBEDDING_DIM
 
+_TOKEN = re.compile(r"[a-z0-9]+")
 
-def _deterministic_vector(text: str, dim: int = EMBEDDING_DIM) -> list[float]:
-    # Expand a digest of the text into `dim` floats, then L2-normalize so the
-    # vectors behave like real unit-length embeddings under cosine similarity.
-    raw: list[float] = []
-    counter = 0
-    while len(raw) < dim:
-        digest = hashlib.sha256(f"{text}:{counter}".encode()).digest()
-        raw.extend((b - 127.5) / 127.5 for b in digest)
-        counter += 1
-    vec = raw[:dim]
+
+def _bag_vector(text: str, dim: int = EMBEDDING_DIM) -> list[float]:
+    vec = [0.0] * dim
+    for token in _TOKEN.findall(text.lower()):
+        idx = int(hashlib.sha256(token.encode()).hexdigest(), 16) % dim
+        vec[idx] += 1.0
     norm = math.sqrt(sum(v * v for v in vec)) or 1.0
     return [v / norm for v in vec]
 
 
 class FakeGateway:
     def embed(self, texts: list[str]) -> list[list[float]]:
-        return [_deterministic_vector(t) for t in texts]
+        return [_bag_vector(t) for t in texts]
 
     def synthesize(self, *, context: str, query: str) -> str:
         tag = hashlib.sha256(f"{query}|{context}".encode()).hexdigest()[:8]
