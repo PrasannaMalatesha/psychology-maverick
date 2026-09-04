@@ -12,22 +12,31 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import Settings, get_settings
 from app.core.db import check_health, ensure_pgvector, make_engine
+from app.core.llm.gateway import ModelGateway
+from app.core.llm.production_gateway import ProductionGateway
+from app.core.store import init_store
 from app.features.chat.router import router as chat_router
+from app.features.chat.service import ChatService
+from app.features.retrieval.service import RetrievalService
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, gateway: ModelGateway | None = None) -> FastAPI:
     settings = settings or get_settings()
     engine = make_engine(settings.database_url)
+    gateway = gateway or ProductionGateway(settings)
+    chat_service = ChatService(RetrievalService(engine, gateway), gateway, settings)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         ensure_pgvector(engine)
+        init_store(engine)
         yield
         engine.dispose()
 
     app = FastAPI(title="Psychology Maverick — Knowledge Assistant", lifespan=lifespan)
     app.state.engine = engine
     app.state.settings = settings
+    app.state.chat_service = chat_service
 
     @app.get("/health", tags=["health"])
     def health() -> JSONResponse:

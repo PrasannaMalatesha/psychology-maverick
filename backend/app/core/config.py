@@ -21,8 +21,12 @@ class Settings(BaseSettings):
     retrieval_top_k: int = 5
     grounding_threshold: float = 0.35
 
-    # Model gateway roles (ADR-0002). Wired to the real adapter in T3.
-    embedding_model: str = "bge-small-en-v1.5"
+    # Ingestion / chunking (T2).
+    chunk_max_chars: int = 1200
+    chunk_overlap: int = 150
+
+    # Model gateway roles (ADR-0002).
+    embedding_model: str = "BAAI/bge-small-en-v1.5"
     synthesis_model: str = "gpt-4o-mini"
 
 
