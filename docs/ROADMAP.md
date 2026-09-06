@@ -9,7 +9,7 @@
 | M | Milestone | Scope (one line) | Spec | Issue | Status |
 |---|-----------|------------------|------|-------|:---:|
 | **M1** | Vertical slice | Ingest a corpus *subset* → real `POST /chat` (retrieve → synthesize) → one Langfuse trace. Proves the spine. | [M1-rag-chat-slice.md](specs/M1-rag-chat-slice.md) | [#1](https://github.com/PrasannaMalatesha/psychology-maverick/issues/1)–[#5](https://github.com/PrasannaMalatesha/psychology-maverick/issues/5) | ✅ |
-| **M2** | Contracts & storage | Full `Answer` Pydantic contract, complete Postgres schema + pgvector/HNSW, full ingestion CLI over the whole corpus. | — | — | ⬜ |
+| **M2** | Contracts & storage | Full `Answer` contract (invariants), Category on every passage, JSON reader, whole-corpus ingestion + corpus stats. | [M2-contracts-and-storage.md](specs/M2-contracts-and-storage.md) | [#7](https://github.com/PrasannaMalatesha/psychology-maverick/issues/7)–[#9](https://github.com/PrasannaMalatesha/psychology-maverick/issues/9) | 🔵 |
 | **M3** | Agent | LangGraph node graph, tool-calling (keyword/fetch), Postgres checkpointer, multi-turn conversations. | — | — | ⬜ |
 | **M4** | Safety *(non-negotiable — [ADR-0004](adr/0004-informational-safety-posture.md))* | Crisis-escalation node (before retrieval), faithfulness judge, human-in-the-loop interrupt, clinical disclaimers. **Gate: no user-facing launch before this.** | — | — | ⬜ |
 | **M5** | Model gateway | LiteLLM registry, role-based routing + fallback across the full model set ([ADR-0002](adr/0002-config-driven-model-gateway.md)). | — | — | ⬜ |
@@ -29,6 +29,12 @@ Work the frontier — a ticket is grabbable once its blockers are ✅.
 - [x] [#5](https://github.com/PrasannaMalatesha/psychology-maverick/issues/5) **T5** One Langfuse trace per Query — ✅ done (18/18 tests, gate green)
 
 **M1 complete** ✅ — all 5 tickets landed; the canned matcher is gone, the real retrieve→synthesize spine is proven end to end.
+
+### M2 tickets (build in order; live status on GitHub)
+
+- [ ] [#7](https://github.com/PrasannaMalatesha/psychology-maverick/issues/7) **T1** JSON/PLOS reader + Category on every passage — *blocked by: none*
+- [ ] [#8](https://github.com/PrasannaMalatesha/psychology-maverick/issues/8) **T2** `Answer` contract invariants (+ bge threshold default) — *blocked by: none*
+- [ ] [#9](https://github.com/PrasannaMalatesha/psychology-maverick/issues/9) **T3** Corpus stats + robust whole-corpus ingest — *blocked by: #7*
 
 Post-M1 fixes on `dev` (from `/code-review`):
 - **2026-09-06** — Orphan passages on re-ingest fixed: ingestion now **replaces** each document's passages in one transaction (`core/store.replace_passages`), so chunks removed from an edited/shortened document no longer linger. 19/19 tests (added a shortened-re-ingest orphan check). Still open (deferred to M2/M7): grounded-answer null category from PDFs lacking category metadata; `grounding_threshold` calibration for bge (~0.55 per the live run); LangfuseTracer v2-vs-v3 API pin.
