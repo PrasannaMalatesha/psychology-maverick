@@ -1,5 +1,6 @@
 """Ingestion behavior through the CLI seam, against real pgvector with a fake gateway."""
 
+import json
 from pathlib import Path
 
 from sqlalchemy import Engine, text
@@ -92,3 +93,31 @@ def test_reingest_shortened_document_leaves_no_orphans(
 
     assert second.passages == 1
     assert _scalar(engine, "SELECT count(*) FROM passages") == 1  # long version fully gone
+
+
+def test_every_passage_has_a_category(
+    clean_passages, corpus_service: CorpusService, engine: Engine
+):
+    corpus_service.ingest(str(FIXTURES))
+    assert _scalar(engine, "SELECT count(*) FROM passages WHERE category IS NULL") == 0
+
+
+def test_json_manifest_titles_the_matching_article(
+    clean_passages, engine: Engine, settings: Settings, tmp_path
+):
+    articles = tmp_path / "articles"
+    articles.mkdir()
+    (articles / "plos.json").write_text(
+        json.dumps(
+            {"response": {"docs": [
+                {"id": "10.1371/journal.pone.0197002", "title_display": "Diurnal Variations"}
+            ]}}
+        )
+    )
+    # An article body file whose stem carries the DOI's trailing segment; no front-matter title.
+    (articles / "plos_pone_0197002.txt").write_text("# Body\nresearch text on circadian mood.")
+    CorpusService(engine, FakeGateway(), settings).ingest(str(tmp_path))
+
+    titles = _distinct(engine, "SELECT DISTINCT document_title FROM passages")
+    assert "Diurnal Variations" in titles  # manifest title used, not the filename stem
+    assert _distinct(engine, "SELECT DISTINCT register FROM passages") == {"research"}

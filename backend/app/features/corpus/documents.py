@@ -1,13 +1,19 @@
 """Load source documents into a common shape for chunking.
 
-Supports markdown/text (with optional `--- key: value ---` front matter and
-heading-based sections) and PDF (pypdf, one section per page). Register is taken
-from front matter, else inferred from the parent directory name
-(textbooks→textbook, articles→research, mental_health→consumer_health).
+Formats: markdown/text (optional `--- key: value ---` front matter, heading-based
+sections) and PDF (pypdf, one section per page). Register is taken from front
+matter, else inferred from the parent directory (textbooks→textbook,
+articles→research, mental_health→consumer_health). Every document gets a Category
+(front matter → per-register default).
+
+PLOS ships article metadata as Solr-shaped JSON (id + title only, no body), so JSON
+is read as a *title manifest* — it renames the matching article PDFs — not as a
+passage source (the article text is the PDFs).
 """
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -19,12 +25,20 @@ _DIR_REGISTER = {
     "mental_health": Register.consumer_health,
 }
 
+# Coarse per-register default when a source carries no explicit Category. Overridden
+# by front matter where present; a real per-passage classifier is future work (M7).
+_DEFAULT_CATEGORY = {
+    Register.textbook: Category.cognitive,
+    Register.research: Category.clinical,
+    Register.consumer_health: Category.clinical,
+}
+
 
 @dataclass(frozen=True)
 class Document:
     title: str
     register: Register
-    category: Category | None
+    category: Category
     source_ref: str
     sections: list[tuple[str, str]]  # (locator, text)
 
@@ -36,6 +50,10 @@ def _infer_register(path: Path, override: str | None) -> Register:
         if part in _DIR_REGISTER:
             return _DIR_REGISTER[part]
     raise ValueError(f"Cannot determine register for {path}: no front matter, no known parent dir")
+
+
+def _category(override: str | None, register: Register) -> Category:
+    return Category(override) if override else _DEFAULT_CATEGORY[register]
 
 
 def _parse_front_matter(raw: str) -> tuple[dict[str, str], str]:
@@ -71,42 +89,65 @@ def _split_sections(body: str, fallback_locator: str) -> list[tuple[str, str]]:
     return sections or [(fallback_locator, body.strip())]
 
 
-def _load_markdown(path: Path) -> Document:
+def _load_title_manifest(root: Path) -> dict[str, str]:
+    """Map an article's trailing DOI segment (e.g. '0197002') to its title, from PLOS JSON."""
+    manifest: dict[str, str] = {}
+    for path in root.rglob("*.json"):
+        try:
+            docs = json.loads(path.read_text(encoding="utf-8")).get("response", {}).get("docs", [])
+        except (ValueError, OSError):
+            continue
+        for doc in docs:
+            doc_id, title = doc.get("id"), doc.get("title_display")
+            if doc_id and title:
+                manifest[doc_id.rsplit(".", 1)[-1]] = title
+    return manifest
+
+
+def _manifest_title(stem: str, manifest: dict[str, str]) -> str | None:
+    for key, title in manifest.items():
+        if key in stem:
+            return title
+    return None
+
+
+def _load_markdown(path: Path, manifest: dict[str, str]) -> Document:
     meta, body = _parse_front_matter(path.read_text(encoding="utf-8"))
-    title = meta.get("title", path.stem)
-    category = Category(meta["category"]) if meta.get("category") else None
+    register = _infer_register(path, meta.get("register"))
+    title = meta.get("title") or _manifest_title(path.stem, manifest) or path.stem
     return Document(
         title=title,
-        register=_infer_register(path, meta.get("register")),
-        category=category,
+        register=register,
+        category=_category(meta.get("category"), register),
         source_ref=str(path),
         sections=_split_sections(body, fallback_locator=title),
     )
 
 
-def _load_pdf(path: Path) -> Document:
+def _load_pdf(path: Path, manifest: dict[str, str]) -> Document:
     from pypdf import PdfReader
 
     reader = PdfReader(str(path))
     sections = [
-        (f"p.{i + 1}", (page.extract_text() or "").strip())
-        for i, page in enumerate(reader.pages)
+        (f"p.{i + 1}", (page.extract_text() or "").strip()) for i, page in enumerate(reader.pages)
     ]
     sections = [(loc, txt) for loc, txt in sections if txt]
+    register = _infer_register(path, None)
     return Document(
-        title=path.stem,
-        register=_infer_register(path, None),
-        category=None,
+        title=_manifest_title(path.stem, manifest) or path.stem,
+        register=register,
+        category=_category(None, register),
         source_ref=str(path),
         sections=sections,
     )
 
 
 def load_documents(root: Path) -> list[Document]:
+    manifest = _load_title_manifest(root)
     docs: list[Document] = []
     for path in sorted(root.rglob("*")):
         if path.suffix.lower() in {".md", ".txt"}:
-            docs.append(_load_markdown(path))
+            docs.append(_load_markdown(path, manifest))
         elif path.suffix.lower() == ".pdf":
-            docs.append(_load_pdf(path))
+            docs.append(_load_pdf(path, manifest))
     return docs
