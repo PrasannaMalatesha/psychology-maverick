@@ -30,6 +30,9 @@ Work the frontier — a ticket is grabbable once its blockers are ✅.
 
 **M1 complete** ✅ — all 5 tickets landed; the canned matcher is gone, the real retrieve→synthesize spine is proven end to end.
 
+Post-M1 fixes on `dev` (from `/code-review`):
+- **2026-09-06** — Orphan passages on re-ingest fixed: ingestion now **replaces** each document's passages in one transaction (`core/store.replace_passages`), so chunks removed from an edited/shortened document no longer linger. 19/19 tests (added a shortened-re-ingest orphan check). Still open (deferred to M2/M7): grounded-answer null category from PDFs lacking category metadata; `grounding_threshold` calibration for bge (~0.55 per the live run); LangfuseTracer v2-vs-v3 API pin.
+
 **Definition of v1 / MVP:** M1–M9 together — a real User can sign in, ask a Query, and get a safe, grounded, cited Answer in a deployed UI. M1 alone is an *internal spine proof*, not a shippable product.
 
 ## Open decisions (resolve before the milestone they block)

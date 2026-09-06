@@ -5,12 +5,11 @@ core so neither feature imports the other. One concrete implementation over Post
 pgvector; tested through a real ephemeral database, never a fake (ADR-0006).
 """
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Engine, Row, String, Text, text
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy import Engine, Row, String, Text, delete, insert, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base import Base
@@ -54,10 +53,16 @@ def init_store(engine: Engine) -> None:
         )
 
 
-def upsert_passages(engine: Engine, records: list[PassageRecord]) -> int:
-    """Insert or update passages by passage_id (idempotent re-ingest). Returns the count."""
-    if not records:
-        return 0
+def replace_passages(
+    engine: Engine, source_refs: Iterable[str], records: list[PassageRecord]
+) -> int:
+    """Replace all passages for the given source documents, in one transaction.
+
+    Deleting each document's existing passages before inserting the new ones makes
+    re-ingest idempotent *and* orphan-free: chunks removed since a prior ingest
+    (edited or shortened document) don't linger. Returns the inserted count.
+    """
+    refs = list(source_refs)
     rows = [
         {
             "passage_id": r.passage_id,
@@ -71,11 +76,11 @@ def upsert_passages(engine: Engine, records: list[PassageRecord]) -> int:
         }
         for r in records
     ]
-    stmt = pg_insert(Passage).values(rows)
-    update_cols = {c: stmt.excluded[c] for c in rows[0] if c != "passage_id"}
-    stmt = stmt.on_conflict_do_update(index_elements=["passage_id"], set_=update_cols)
     with engine.begin() as conn:
-        conn.execute(stmt)
+        if refs:
+            conn.execute(delete(Passage).where(Passage.source_ref.in_(refs)))
+        if rows:
+            conn.execute(insert(Passage).values(rows))
     return len(rows)
 
 
