@@ -6,8 +6,9 @@ of those. Full validation invariants land in T2/T4; this is the shared shape.
 """
 
 from enum import StrEnum
+from typing import Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.core.contracts import Category, Register
 
@@ -35,6 +36,18 @@ class Answer(BaseModel):
     category: Category | None = None
     text: str | None = None
     citations: list[Citation] = []
+
+    @model_validator(mode="after")
+    def _enforce_shape(self) -> Self:
+        if self.state is AnswerState.grounded:
+            if not self.text or self.category is None or not self.citations:
+                raise ValueError("grounded Answer requires text, a category, and >=1 citation")
+        else:  # insufficient_context
+            if self.text is not None or self.category is not None or self.citations:
+                raise ValueError(
+                    "insufficient_context Answer must carry no text, category, or citations"
+                )
+        return self
 
 
 class Query(BaseModel):

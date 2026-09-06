@@ -84,6 +84,23 @@ def replace_passages(
     return len(rows)
 
 
+@dataclass(frozen=True)
+class RegisterStats:
+    register: str
+    documents: int
+    passages: int
+
+
+def corpus_stats(engine: Engine) -> list[RegisterStats]:
+    """Documents (distinct source_ref) and passages per register. Computed from passages."""
+    sql = text(
+        "SELECT register, count(DISTINCT source_ref) AS documents, count(*) AS passages "
+        "FROM passages GROUP BY register ORDER BY register"
+    )
+    with engine.connect() as conn:
+        return [RegisterStats(r.register, r.documents, r.passages) for r in conn.execute(sql)]
+
+
 def search(engine: Engine, embedding: list[float], k: int) -> Sequence[Row]:
     """Return the k passages nearest `embedding` by cosine similarity (HNSW), score-first.
 
