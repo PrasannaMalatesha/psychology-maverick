@@ -14,7 +14,7 @@ from sqlalchemy import Engine
 
 from app.core.config import Settings
 from app.core.llm.gateway import ModelGateway
-from app.core.store import PassageRecord, upsert_passages
+from app.core.store import PassageRecord, replace_passages
 from app.features.corpus.chunking import chunk_document
 from app.features.corpus.documents import load_documents
 
@@ -62,5 +62,7 @@ class CorpusService:
             )
             for (doc, chunk), embedding in zip(pending, embeddings, strict=True)
         ]
-        upsert_passages(self._engine, records)
+        # Pass every loaded document's source_ref (not just those with chunks) so a
+        # document emptied since a prior ingest also has its stale passages removed.
+        replace_passages(self._engine, {doc.source_ref for doc in docs}, records)
         return IngestReport(documents=len(docs), passages=len(records))

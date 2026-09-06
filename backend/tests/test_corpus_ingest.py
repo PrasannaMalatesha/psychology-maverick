@@ -4,6 +4,8 @@ from pathlib import Path
 
 from sqlalchemy import Engine, text
 
+from app.core.config import Settings
+from app.core.llm import FakeGateway
 from app.core.llm.gateway import EMBEDDING_DIM
 from app.features.corpus import cli
 from app.features.corpus.service import CorpusService
@@ -70,3 +72,23 @@ def test_reingest_is_idempotent(
     count_after_second = _scalar(engine, "SELECT count(*) FROM passages")
     assert first.passages == second.passages
     assert count_after_first == count_after_second  # no duplicates on re-ingest
+
+
+def test_reingest_shortened_document_leaves_no_orphans(
+    clean_passages, engine: Engine, settings: Settings, tmp_path
+):
+    articles = tmp_path / "articles"
+    articles.mkdir()
+    doc = articles / "doc.md"
+    front = "---\ntitle: Doc\nregister: research\ncategory: clinical\n---\n"
+    service = CorpusService(engine, FakeGateway(), settings)
+
+    doc.write_text(front + "# A\n" + ("word " * 800))  # long -> several chunks
+    first = service.ingest(str(tmp_path))
+    assert first.passages > 1
+
+    doc.write_text(front + "# A\nshort body.")  # same source_ref, now one chunk
+    second = service.ingest(str(tmp_path))
+
+    assert second.passages == 1
+    assert _scalar(engine, "SELECT count(*) FROM passages") == 1  # long version fully gone
