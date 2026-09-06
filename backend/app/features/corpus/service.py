@@ -25,6 +25,7 @@ _EMBED_BATCH = 64
 class IngestReport:
     documents: int
     passages: int
+    skipped: int = 0
 
 
 class CorpusService:
@@ -40,7 +41,7 @@ class CorpusService:
         return vectors
 
     def ingest(self, path: str) -> IngestReport:
-        docs = load_documents(Path(path))
+        docs, skipped = load_documents(Path(path))
         pending = [
             (doc, chunk)
             for doc in docs
@@ -65,4 +66,4 @@ class CorpusService:
         # Pass every loaded document's source_ref (not just those with chunks) so a
         # document emptied since a prior ingest also has its stale passages removed.
         replace_passages(self._engine, {doc.source_ref for doc in docs}, records)
-        return IngestReport(documents=len(docs), passages=len(records))
+        return IngestReport(documents=len(docs), passages=len(records), skipped=skipped)

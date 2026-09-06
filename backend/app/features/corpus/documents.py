@@ -142,12 +142,32 @@ def _load_pdf(path: Path, manifest: dict[str, str]) -> Document:
     )
 
 
-def load_documents(root: Path) -> list[Document]:
+def load_documents(root: Path) -> tuple[list[Document], int]:
+    """Load all supported documents under root. Returns (documents, skipped_count).
+
+    A source that fails to parse or yields no text is skipped with a warning so one
+    bad file never aborts a whole-corpus run.
+    """
     manifest = _load_title_manifest(root)
     docs: list[Document] = []
+    skipped = 0
     for path in sorted(root.rglob("*")):
-        if path.suffix.lower() in {".md", ".txt"}:
-            docs.append(_load_markdown(path, manifest))
-        elif path.suffix.lower() == ".pdf":
-            docs.append(_load_pdf(path, manifest))
-    return docs
+        suffix = path.suffix.lower()
+        if suffix not in {".md", ".txt", ".pdf"}:
+            continue
+        try:
+            doc = (
+                _load_markdown(path, manifest)
+                if suffix in {".md", ".txt"}
+                else _load_pdf(path, manifest)
+            )
+        except Exception as exc:  # noqa: BLE001 - skip any unreadable source, keep going
+            print(f"skip {path}: {exc}")
+            skipped += 1
+            continue
+        if not any(text.strip() for _, text in doc.sections):
+            print(f"skip {path}: no extractable text")
+            skipped += 1
+            continue
+        docs.append(doc)
+    return docs, skipped
