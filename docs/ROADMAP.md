@@ -33,7 +33,7 @@ Work the frontier — a ticket is grabbable once its blockers are ✅.
 ### M2 tickets (build in order; live status on GitHub)
 
 - [x] [#7](https://github.com/PrasannaMalatesha/psychology-maverick/issues/7) **T1** JSON/PLOS reader + Category on every passage — ✅ done (21/21 tests). JSON used as a title manifest (it's metadata-only), per-register default Category.
-- [ ] [#8](https://github.com/PrasannaMalatesha/psychology-maverick/issues/8) **T2** `Answer` contract invariants (+ bge threshold default) — *blocked by: none*
+- [x] [#8](https://github.com/PrasannaMalatesha/psychology-maverick/issues/8) **T2** `Answer` contract invariants (+ bge threshold default) — ✅ done (29/29 tests)
 - [ ] [#9](https://github.com/PrasannaMalatesha/psychology-maverick/issues/9) **T3** Corpus stats + robust whole-corpus ingest — *blocked by: #7*
 
 Post-M1 fixes on `dev` (from `/code-review`):

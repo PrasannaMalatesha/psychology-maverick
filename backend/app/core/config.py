@@ -19,7 +19,9 @@ class Settings(BaseSettings):
     # Retrieval / answer policy (consumed from T3 onward; declared here so the
     # thresholds are configuration, never hard-coded — see the M1 spec).
     retrieval_top_k: int = 5
-    grounding_threshold: float = 0.35
+    # 0.5 tuned for bge-small (its similarity floor is high; the live run showed
+    # 0.35 admitted off-topic). Final calibration is M7's evals.
+    grounding_threshold: float = 0.5
 
     # Ingestion / chunking (T2).
     chunk_max_chars: int = 1200
