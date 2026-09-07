@@ -12,6 +12,8 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pgvector>=0.3",
     "pypdf>=4.0",
+    "langgraph>=0.2",
+    "langgraph-checkpoint-postgres>=2.0",
     # litellm (real synthesis) is added in T3. The real embedder uses local
     # sentence-transformers (ADR-0002), installed via the `embeddings` extra so
     # CI stays lean — tests use the deterministic FakeGateway.
@@ -66,6 +68,7 @@ name = "Features depend downward only, never sideways or upward"
 type = "layers"
 layers = [
     "app.features.chat",
+    "app.features.assistant",
     "app.features.retrieval",
     "app.features.corpus",
 ]

@@ -40,7 +40,7 @@ Work the frontier — a ticket is grabbable once its blockers are ✅.
 
 ### M3 tickets (build in order; live status on GitHub) — LangGraph, per ADR-0005
 
-- [ ] [#10](https://github.com/PrasannaMalatesha/psychology-maverick/issues/10) **T1** LangGraph graph + Postgres checkpointer + multi-turn — *blocked by: none*
+- [x] [#10](https://github.com/PrasannaMalatesha/psychology-maverick/issues/10) **T1** LangGraph graph + Postgres checkpointer + multi-turn — ✅ done (35/35 tests). Answer contract moved to `core.contracts` to keep feature layers clean; new `assistant` feature owns the graph.
 - [ ] [#11](https://github.com/PrasannaMalatesha/psychology-maverick/issues/11) **T2** Keyword/fetch tool node (escape hatch) — *blocked by: #10*
 - [ ] [#12](https://github.com/PrasannaMalatesha/psychology-maverick/issues/12) **T3** `GET /conversations/{id}` (history) — *blocked by: #10*
 
