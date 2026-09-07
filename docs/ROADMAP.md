@@ -10,7 +10,7 @@
 |---|-----------|------------------|------|-------|:---:|
 | **M1** | Vertical slice | Ingest a corpus *subset* → real `POST /chat` (retrieve → synthesize) → one Langfuse trace. Proves the spine. | [M1-rag-chat-slice.md](specs/M1-rag-chat-slice.md) | [#1](https://github.com/PrasannaMalatesha/psychology-maverick/issues/1)–[#5](https://github.com/PrasannaMalatesha/psychology-maverick/issues/5) | ✅ |
 | **M2** | Contracts & storage | Full `Answer` contract (invariants), Category on every passage, JSON reader, whole-corpus ingestion + corpus stats. | [M2-contracts-and-storage.md](specs/M2-contracts-and-storage.md) | [#7](https://github.com/PrasannaMalatesha/psychology-maverick/issues/7)–[#9](https://github.com/PrasannaMalatesha/psychology-maverick/issues/9) | ✅ |
-| **M3** | Agent | LangGraph graph (retrieve→grade→tool?→synthesize), Postgres checkpointer, multi-turn, keyword tool. | [M3-agent.md](specs/M3-agent.md) | [#10](https://github.com/PrasannaMalatesha/psychology-maverick/issues/10)–[#12](https://github.com/PrasannaMalatesha/psychology-maverick/issues/12) | 🔵 |
+| **M3** | Agent | LangGraph graph (retrieve→grade→tool?→synthesize), Postgres checkpointer, multi-turn, keyword tool. | [M3-agent.md](specs/M3-agent.md) | [#10](https://github.com/PrasannaMalatesha/psychology-maverick/issues/10)–[#12](https://github.com/PrasannaMalatesha/psychology-maverick/issues/12) | ✅ |
 | **M4** | Safety *(non-negotiable — [ADR-0004](adr/0004-informational-safety-posture.md))* | Crisis-escalation node (before retrieval), faithfulness judge, human-in-the-loop interrupt, clinical disclaimers. **Gate: no user-facing launch before this.** | — | — | ⬜ |
 | **M5** | Model gateway | LiteLLM registry, role-based routing + fallback across the full model set ([ADR-0002](adr/0002-config-driven-model-gateway.md)). | — | — | ⬜ |
 | **M6** | Auth & security | Email+password JWT (argon2, refresh rotation, Redis revocation), user/admin RBAC, per-User conversation ownership. | — | — | ⬜ |
@@ -42,7 +42,9 @@ Work the frontier — a ticket is grabbable once its blockers are ✅.
 
 - [x] [#10](https://github.com/PrasannaMalatesha/psychology-maverick/issues/10) **T1** LangGraph graph + Postgres checkpointer + multi-turn — ✅ done (35/35 tests). Answer contract moved to `core.contracts` to keep feature layers clean; new `assistant` feature owns the graph.
 - [x] [#11](https://github.com/PrasannaMalatesha/psychology-maverick/issues/11) **T2** Keyword/fetch tool node (escape hatch) — ✅ done (37/37 tests). Conditional edge: semantic miss → keyword ILIKE search → recover or stay insufficient.
-- [ ] [#12](https://github.com/PrasannaMalatesha/psychology-maverick/issues/12) **T3** `GET /conversations/{id}` (history) — *blocked by: #10*
+- [x] [#12](https://github.com/PrasannaMalatesha/psychology-maverick/issues/12) **T3** `GET /conversations/{id}` (history) — ✅ done (38/38 tests)
+
+**M3 complete** ✅ — the answer path is a LangGraph agent: multi-turn (checkpointer), a keyword-tool escape hatch, and conversation history.
 
 Post-M1 fixes on `dev` (from `/code-review`):
 - **2026-09-06** — Orphan passages on re-ingest fixed: ingestion now **replaces** each document's passages in one transaction (`core/store.replace_passages`), so chunks removed from an edited/shortened document no longer linger. 19/19 tests (added a shortened-re-ingest orphan check). Still open (deferred to M2/M7): grounded-answer null category from PDFs lacking category metadata; `grounding_threshold` calibration for bge (~0.55 per the live run); LangfuseTracer v2-vs-v3 API pin.

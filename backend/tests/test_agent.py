@@ -80,3 +80,20 @@ def test_keyword_tool_no_match_stays_insufficient(
     chat = ChatService(RetrievalService(engine, FakeGateway()), FakeGateway(), _strict(settings))
     answer = chat.answer("zzzznonexistentterm", "kw-b")  # neither semantic nor keyword match
     assert answer.state.value == "insufficient_context"
+
+
+def test_conversations_endpoint_returns_turns(
+    clean_passages, corpus_service: CorpusService, client
+):
+    corpus_service.ingest(str(FIXTURES))
+    cid = client.post(
+        "/chat", json={"query": "what is cognitive behavioral therapy?"}
+    ).headers["X-Conversation-Id"]
+
+    body = client.get(f"/conversations/{cid}").json()
+    assert body["conversation_id"] == cid
+    assert len(body["turns"]) == 1
+
+    empty = client.get("/conversations/does-not-exist")
+    assert empty.status_code == 200
+    assert empty.json()["turns"] == []
