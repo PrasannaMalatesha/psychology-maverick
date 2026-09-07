@@ -55,3 +55,28 @@ def test_chat_returns_conversation_id_header(clean_passages, corpus_service: Cor
     r = client.post("/chat", json={"query": "what is cognitive behavioral therapy?"})
     assert r.status_code == 200
     assert r.headers.get("X-Conversation-Id")
+
+
+def _strict(settings: Settings) -> Settings:
+    # High enough that FakeGateway's semantic scores miss, forcing the keyword tool.
+    return settings.model_copy(update={"grounding_threshold": 0.5})
+
+
+def test_keyword_tool_recovers_when_semantic_misses(
+    clean_passages, corpus_service: CorpusService, engine: Engine, settings: Settings
+):
+    corpus_service.ingest(str(FIXTURES))
+    chat = ChatService(RetrievalService(engine, FakeGateway()), FakeGateway(), _strict(settings))
+    # "insomnia" is in the corpus; semantic misses at 0.5, the keyword tool recovers it.
+    answer = chat.answer("insomnia", "kw-a")
+    assert answer.state.value == "grounded"
+    assert answer.citations
+
+
+def test_keyword_tool_no_match_stays_insufficient(
+    clean_passages, corpus_service: CorpusService, engine: Engine, settings: Settings
+):
+    corpus_service.ingest(str(FIXTURES))
+    chat = ChatService(RetrievalService(engine, FakeGateway()), FakeGateway(), _strict(settings))
+    answer = chat.answer("zzzznonexistentterm", "kw-b")  # neither semantic nor keyword match
+    assert answer.state.value == "insufficient_context"

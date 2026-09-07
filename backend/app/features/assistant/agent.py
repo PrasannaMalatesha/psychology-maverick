@@ -81,10 +81,34 @@ def build_agent(
         answer_json = answer.model_dump(mode="json", by_alias=True)
         return {"answer": answer_json, "history": [{"query": query, "answer": answer_json}]}
 
+    def keyword_tool(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
+        # Escape hatch: semantic search found nothing groundable; try exact-term lookup.
+        merged = {p["passage_id"]: p for p in state["passages"]}
+        with _span(config, "keyword_tool"):
+            for sp in retrieval.keyword(state["query"], settings.retrieval_top_k):
+                merged[sp.passage_id] = {
+                    "passage_id": sp.passage_id,
+                    "text": sp.text,
+                    "register": sp.register.value,
+                    "category": sp.category.value if sp.category else None,
+                    "document_title": sp.document_title,
+                    "locator": sp.locator,
+                    "score": sp.score,
+                }
+        return {"passages": list(merged.values())}
+
+    def grade(state: AgentState) -> str:
+        strong = any(p["score"] >= settings.grounding_threshold for p in state["passages"])
+        return "synthesize" if strong else "keyword_tool"
+
     graph = StateGraph(AgentState)
     graph.add_node("retrieve", retrieve)
+    graph.add_node("keyword_tool", keyword_tool)
     graph.add_node("synthesize", synthesize)
     graph.add_edge(START, "retrieve")
-    graph.add_edge("retrieve", "synthesize")
+    graph.add_conditional_edges(
+        "retrieve", grade, {"synthesize": "synthesize", "keyword_tool": "keyword_tool"}
+    )
+    graph.add_edge("keyword_tool", "synthesize")
     graph.add_edge("synthesize", END)
     return graph
