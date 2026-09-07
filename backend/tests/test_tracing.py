@@ -37,4 +37,7 @@ def test_insufficient_query_emits_one_trace_without_synthesize_span(
     strict = settings.model_copy(update={"grounding_threshold": 2.0})
     _chat(engine, strict, rec).answer("cognitive behavioral therapy")
     assert len(rec.traces) == 1
-    assert rec.traces[0]["spans"] == ["retrieve"]
+    spans = rec.traces[0]["spans"]
+    # Declined: the agent tried the keyword tool then gave up — but never synthesized.
+    assert "retrieve" in spans
+    assert "synthesize" not in spans

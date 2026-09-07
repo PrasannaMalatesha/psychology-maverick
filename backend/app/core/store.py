@@ -116,3 +116,17 @@ def search(engine: Engine, embedding: list[float], k: int) -> Sequence[Row]:
     )
     with engine.connect() as conn:
         return conn.execute(stmt, {"vec": vec_literal, "k": k}).all()
+
+
+def keyword_search(engine: Engine, terms: list[str], k: int) -> Sequence[Row]:
+    """Passages whose text matches any of `terms` (case-insensitive). The escape hatch
+    for exact-term lookups semantic search misses. Reads only; no score column."""
+    if not terms:
+        return []
+    patterns = [f"%{t}%" for t in terms]
+    stmt = text(
+        "SELECT passage_id, text, register, category, document_title, locator "
+        "FROM passages WHERE text ILIKE ANY(:patterns) LIMIT :k"
+    )
+    with engine.connect() as conn:
+        return conn.execute(stmt, {"patterns": patterns, "k": k}).all()

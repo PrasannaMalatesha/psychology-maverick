@@ -25,12 +25,17 @@ def create_app(
     settings: Settings | None = None,
     gateway: ModelGateway | None = None,
     tracer: Tracer | None = None,
+    checkpointer: object | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     engine = make_engine(settings.database_url)
     gateway = gateway or ProductionGateway(settings)
     tracer = tracer or LangfuseTracer(settings)
-    chat_service = ChatService(RetrievalService(engine, gateway), gateway, settings, tracer)
+    # checkpointer=None -> ChatService uses an in-memory saver; deploy passes a
+    # Postgres checkpointer (app.core.checkpoint.make_postgres_checkpointer).
+    chat_service = ChatService(
+        RetrievalService(engine, gateway), gateway, settings, tracer, checkpointer
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

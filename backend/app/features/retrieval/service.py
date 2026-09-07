@@ -4,13 +4,16 @@ Returns *scored* passages only; it does not decide grounded-vs-insufficient (tha
 policy is `chat`'s). Tested through a real pgvector store, never a fake.
 """
 
+import re
 from dataclasses import dataclass
 
 from sqlalchemy import Engine
 
 from app.core.contracts import Category, Register
 from app.core.llm.gateway import ModelGateway
-from app.core.store import search
+from app.core.store import keyword_search, search
+
+_KEYWORD_SCORE = 1.0  # exact-term hits ground regardless of the semantic threshold
 
 
 @dataclass(frozen=True)
@@ -41,6 +44,22 @@ class RetrievalService:
                 document_title=row.document_title,
                 locator=row.locator,
                 score=float(row.score),
+            )
+            for row in rows
+        ]
+
+    def keyword(self, query: str, k: int) -> list[ScoredPassage]:
+        terms = [t for t in re.findall(r"[A-Za-z0-9]+", query) if len(t) >= 2]
+        rows = keyword_search(self._engine, terms, k)
+        return [
+            ScoredPassage(
+                passage_id=row.passage_id,
+                text=row.text,
+                register=Register(row.register),
+                category=Category(row.category) if row.category else None,
+                document_title=row.document_title,
+                locator=row.locator,
+                score=_KEYWORD_SCORE,
             )
             for row in rows
         ]
