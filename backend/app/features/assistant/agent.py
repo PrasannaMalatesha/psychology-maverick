@@ -18,7 +18,7 @@ from langgraph.graph import END, START, StateGraph
 from app.core.config import Settings
 from app.core.contracts import Answer, AnswerState, Category, Citation, Register
 from app.core.llm.gateway import ModelGateway
-from app.features.retrieval.service import RetrievalService
+from app.features.retrieval.service import RetrievalService, ScoredPassage
 
 
 class AgentState(TypedDict):
@@ -26,6 +26,19 @@ class AgentState(TypedDict):
     passages: list[dict[str, Any]]
     answer: dict[str, Any] | None
     history: Annotated[list[dict[str, Any]], operator.add]
+
+
+def _passage_dict(p: ScoredPassage) -> dict[str, Any]:
+    """JSON-plain passage for AgentState (checkpointer serializes primitives only)."""
+    return {
+        "passage_id": p.passage_id,
+        "text": p.text,
+        "register": p.register.value,
+        "category": p.category.value if p.category else None,
+        "document_title": p.document_title,
+        "locator": p.locator,
+        "score": p.score,
+    }
 
 
 def _span(config: RunnableConfig, name: str):
@@ -39,20 +52,7 @@ def build_agent(
     def retrieve(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
         with _span(config, "retrieve"):
             passages = retrieval.retrieve(state["query"], settings.retrieval_top_k)
-        return {
-            "passages": [
-                {
-                    "passage_id": p.passage_id,
-                    "text": p.text,
-                    "register": p.register.value,
-                    "category": p.category.value if p.category else None,
-                    "document_title": p.document_title,
-                    "locator": p.locator,
-                    "score": p.score,
-                }
-                for p in passages
-            ]
-        }
+        return {"passages": [_passage_dict(p) for p in passages]}
 
     def synthesize(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
         query = state["query"]
@@ -86,15 +86,7 @@ def build_agent(
         merged = {p["passage_id"]: p for p in state["passages"]}
         with _span(config, "keyword_tool"):
             for sp in retrieval.keyword(state["query"], settings.retrieval_top_k):
-                merged[sp.passage_id] = {
-                    "passage_id": sp.passage_id,
-                    "text": sp.text,
-                    "register": sp.register.value,
-                    "category": sp.category.value if sp.category else None,
-                    "document_title": sp.document_title,
-                    "locator": sp.locator,
-                    "score": sp.score,
-                }
+                merged[sp.passage_id] = _passage_dict(sp)
         return {"passages": list(merged.values())}
 
     def grade(state: AgentState) -> str:
