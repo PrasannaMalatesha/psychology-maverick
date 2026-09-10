@@ -11,7 +11,7 @@
 | **M1** | Vertical slice | Ingest a corpus *subset* → real `POST /chat` (retrieve → synthesize) → one Langfuse trace. Proves the spine. | [M1-rag-chat-slice.md](specs/M1-rag-chat-slice.md) | [#1](https://github.com/PrasannaMalatesha/psychology-maverick/issues/1)–[#5](https://github.com/PrasannaMalatesha/psychology-maverick/issues/5) | ✅ |
 | **M2** | Contracts & storage | Full `Answer` contract (invariants), Category on every passage, JSON reader, whole-corpus ingestion + corpus stats. | [M2-contracts-and-storage.md](specs/M2-contracts-and-storage.md) | [#7](https://github.com/PrasannaMalatesha/psychology-maverick/issues/7)–[#9](https://github.com/PrasannaMalatesha/psychology-maverick/issues/9) | ✅ |
 | **M3** | Agent | LangGraph graph (retrieve→grade→tool?→synthesize), Postgres checkpointer, multi-turn, keyword tool. | [M3-agent.md](specs/M3-agent.md) | [#10](https://github.com/PrasannaMalatesha/psychology-maverick/issues/10)–[#12](https://github.com/PrasannaMalatesha/psychology-maverick/issues/12) | ✅ |
-| **M4** | Safety *(non-negotiable — [ADR-0004](adr/0004-informational-safety-posture.md))* | Crisis-escalation node (before retrieval), faithfulness judge, human-in-the-loop interrupt, clinical disclaimers. **Gate: no user-facing launch before this.** | [M4-safety.md](specs/M4-safety.md) | — | ✅ |
+| **M4** | Safety *(non-negotiable — [ADR-0004](adr/0004-informational-safety-posture.md))* | Crisis-escalation node (before retrieval), faithfulness judge, human-in-the-loop interrupt, clinical disclaimers. **Gate: no user-facing launch before this.** | [M4-safety.md](specs/M4-safety.md) | [#13](https://github.com/PrasannaMalatesha/psychology-maverick/issues/13)–[#16](https://github.com/PrasannaMalatesha/psychology-maverick/issues/16) | ✅ |
 | **M5** | Model gateway | LiteLLM registry, role-based routing + fallback across the full model set ([ADR-0002](adr/0002-config-driven-model-gateway.md)). | — | — | ⬜ |
 | **M6** | Auth & security | Email+password JWT (argon2, refresh rotation, Redis revocation), user/admin RBAC, per-User conversation ownership. | — | — | ⬜ |
 | **M7** | Evals & CI gate | Offline evaluation suite (faithfulness, retrieval quality) + CI quality gate + `import-linter` boundary checks. | — | — | ⬜ |
@@ -46,7 +46,9 @@ Work the frontier — a ticket is grabbable once its blockers are ✅.
 
 **M3 complete** ✅ — the answer path is a LangGraph agent: multi-turn (checkpointer), a keyword-tool escape hatch, and conversation history.
 
-### M4 — Safety (complete, 2026-09-10) — [spec](specs/M4-safety.md), non-negotiable per [ADR-0004](adr/0004-informational-safety-posture.md)
+### M4 — Safety (complete, 2026-09-10) — [spec](specs/M4-safety.md), issues [#13](https://github.com/PrasannaMalatesha/psychology-maverick/issues/13)–[#16](https://github.com/PrasannaMalatesha/psychology-maverick/issues/16), non-negotiable per [ADR-0004](adr/0004-informational-safety-posture.md)
+
+Issues were filed retroactively (the code landed in `f5150a7` before ticketing) and closed, for tracker parity with M1–M3: T1 #13, T2 #14, T3 #15, T4 #16 (#16 blocked by #14).
 
 The four ADR-0004 controls wrap the M3 core without reshaping it — graph is now
 `crisis_check → (crisis? finalize) → retrieve → grade → (keyword_tool?) → synthesize → judge → review → finalize`:

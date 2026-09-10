@@ -51,7 +51,7 @@ GitHub tickets → build ticket-by-ticket → promote.
 | **M8** | Frontend: chat + citations + trust states + auth + sidebar | ⬜ | — |
 | **M9** | Deploy: Render + Neon + Upstash + Vercel + Langfuse | ⬜ | — |
 
-All M1–M3 tickets (#1–#5, #7–#9, #10–#12) are **closed**. GitHub:
+All M1–M4 tickets (#1–#5, #7–#9, #10–#12, #13–#16) are **closed** (M4's filed retroactively). GitHub:
 `https://github.com/PrasannaMalatesha/psychology-maverick` (public). Branching PR #6 merged.
 
 ---
