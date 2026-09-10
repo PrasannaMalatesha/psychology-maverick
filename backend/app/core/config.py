@@ -7,7 +7,24 @@ single accessor; tests construct `Settings(...)` directly and pass it to
 
 from functools import lru_cache
 
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class ModelRole(BaseModel):
+    """A logical role (ADR-0002) → its primary model plus an ordered fallback chain.
+
+    Model strings are LiteLLM ids (`provider/model`); the `embedder` uses a `local/<id>`
+    primary to mean local sentence-transformers. Swapping/adding a model is a config change,
+    never a code change — the whole point of the gateway.
+    """
+
+    primary: str
+    fallbacks: list[str] = []
+
+    @property
+    def chain(self) -> list[str]:
+        return [self.primary, *self.fallbacks]
 
 
 class Settings(BaseSettings):
@@ -27,9 +44,12 @@ class Settings(BaseSettings):
     chunk_max_chars: int = 1200
     chunk_overlap: int = 150
 
-    # Model gateway roles (ADR-0002).
-    embedding_model: str = "BAAI/bge-small-en-v1.5"
-    synthesis_model: str = "gpt-4o-mini"
+    # Model gateway roles (ADR-0002): logical role → model, with fallback chains. Defaults per
+    # project.md §6 (cheap flash for grading/judging, a premium model for synthesis, local
+    # embeddings). Only a Gemini key is available today; fallbacks are as real as the keys present.
+    synthesizer: ModelRole = ModelRole(primary="gemini/gemini-1.5-pro")
+    judge: ModelRole = ModelRole(primary="gemini/gemini-1.5-flash")
+    embedder: ModelRole = ModelRole(primary="local/BAAI/bge-small-en-v1.5")
 
     # Safety (ADR-0004). Crisis resources and the disclaimer are text so they are tuned /
     # region-overridden without code changes. A grounded *clinical* answer whose top passage
