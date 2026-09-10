@@ -36,5 +36,8 @@ class ChatService:
     def answer(self, query: str, conversation_id: str | None = None) -> Answer:
         return self._assistant.answer(query, conversation_id or uuid.uuid4().hex)
 
+    def review(self, conversation_id: str, decision: str) -> Answer:
+        return self._assistant.resume(conversation_id, decision)
+
     def history(self, conversation_id: str) -> list[dict[str, Any]]:
         return self._assistant.history(conversation_id)

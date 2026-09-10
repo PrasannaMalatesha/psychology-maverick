@@ -30,3 +30,8 @@ class FakeGateway:
     def synthesize(self, *, context: str, query: str) -> str:
         tag = hashlib.sha256(f"{query}|{context}".encode()).hexdigest()[:8]
         return f"[fake answer {tag}] Grounded response to: {query}"
+
+    def is_faithful(self, *, context: str, answer: str) -> bool:
+        # Deterministic: the fake never fabricates. Tests that need an unfaithful verdict
+        # subclass and override this.
+        return True

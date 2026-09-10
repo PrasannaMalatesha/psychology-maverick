@@ -31,6 +31,24 @@ class Settings(BaseSettings):
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     synthesis_model: str = "gpt-4o-mini"
 
+    # Safety (ADR-0004). Crisis resources and the disclaimer are text so they are tuned /
+    # region-overridden without code changes. A grounded *clinical* answer whose top passage
+    # scores below the confidence threshold is held for human review; tests set it to 0.0 to
+    # opt out (as with grounding_threshold), and to 1.0 to force review deterministically.
+    clinical_confidence_threshold: float = 0.8
+    crisis_resources: str = (
+        "It sounds like you may be going through something painful, and you deserve support "
+        "right now. If you are thinking about harming yourself or ending your life, please reach "
+        "out: in the US, call or text 988 (Suicide & Crisis Lifeline). Anywhere, you can find a "
+        "helpline at https://findahelpline.com. If you are in immediate danger, call your local "
+        "emergency number. You are not alone, and help is available."
+    )
+    clinical_disclaimer: str = (
+        "This is general information drawn from published sources, not medical advice, a "
+        "diagnosis, or a treatment plan. For guidance about your own situation, please consult "
+        "a licensed clinician."
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:
