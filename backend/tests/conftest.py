@@ -35,7 +35,13 @@ def settings(pg) -> Settings:
     # threshold 0.0: any retrieved passage grounds. The Insufficient-Context branch
     # is exercised deterministically elsewhere by a high threshold / empty store,
     # rather than by fighting the fake embeddings' magnitudes.
-    return Settings(database_url=pg.get_connection_url(), grounding_threshold=0.0)
+    # clinical_confidence_threshold 0.0: opt out of the human-in-the-loop interrupt by default;
+    # the dedicated M4 test forces it to 1.0 to trigger review deterministically.
+    return Settings(
+        database_url=pg.get_connection_url(),
+        grounding_threshold=0.0,
+        clinical_confidence_threshold=0.0,
+    )
 
 
 @pytest.fixture(scope="session")

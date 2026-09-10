@@ -17,3 +17,7 @@ class ModelGateway(Protocol):
     def synthesize(self, *, context: str, query: str) -> str:
         """Produce answer prose grounded strictly in `context` for `query`."""
         ...
+
+    def is_faithful(self, *, context: str, answer: str) -> bool:
+        """True when every claim in `answer` is supported by `context` (ADR-0004 judge)."""
+        ...

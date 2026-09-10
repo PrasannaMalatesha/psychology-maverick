@@ -53,3 +53,25 @@ class ProductionGateway:
             ],
         )
         return response.choices[0].message.content or ""  # type: ignore[union-attr,index]
+
+    def is_faithful(self, *, context: str, answer: str) -> bool:
+        try:
+            import litellm  # type: ignore[import-not-found]
+        except ImportError as exc:  # pragma: no cover - exercised only without the extra
+            raise RuntimeError(
+                "The faithfulness judge needs the 'synthesis' extra: uv sync --extra synthesis"
+            ) from exc
+        system = (
+            "You are a strict faithfulness judge. Decide whether EVERY claim in the ANSWER is "
+            "supported by the CONTEXT. Reply with exactly 'yes' or 'no' and nothing else."
+        )
+        response = litellm.completion(
+            model=self._settings.synthesis_model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": f"CONTEXT:\n{context}\n\nANSWER:\n{answer}"},
+            ],
+        )
+        verdict = (response.choices[0].message.content or "").strip().lower()  # type: ignore[union-attr,index]
+        # Default to unfaithful on an ambiguous verdict — safety errs toward withholding.
+        return verdict.startswith("yes")

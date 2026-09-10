@@ -29,6 +29,8 @@ class Category(StrEnum):
 class AnswerState(StrEnum):
     grounded = "grounded"
     insufficient_context = "insufficient_context"
+    crisis = "crisis"  # acute-risk signal: resources surfaced, answering stops (ADR-0004)
+    pending_review = "pending_review"  # low-confidence clinical answer withheld for a human
 
 
 class Citation(BaseModel):
@@ -47,16 +49,26 @@ class Answer(BaseModel):
     category: Category | None = None
     text: str | None = None
     citations: list[Citation] = []
+    # Clinical-category grounded answers carry a "this is information, not advice" note (ADR-0004).
+    disclaimer: str | None = None
 
     @model_validator(mode="after")
     def _enforce_shape(self) -> Self:
         if self.state is AnswerState.grounded:
             if not self.text or self.category is None or not self.citations:
                 raise ValueError("grounded Answer requires text, a category, and >=1 citation")
-        else:  # insufficient_context
-            if self.text is not None or self.category is not None or self.citations:
+        elif self.state in (AnswerState.crisis, AnswerState.pending_review):
+            # A message to the user, but no grounded content: no category, citations, or disclaimer.
+            if not self.text or self.category is not None or self.citations or self.disclaimer:
                 raise ValueError(
-                    "insufficient_context Answer must carry no text, category, or citations"
+                    f"{self.state.value} Answer requires text and no category, citations, "
+                    "or disclaimer"
+                )
+        else:  # insufficient_context
+            if self.text or self.category is not None or self.citations or self.disclaimer:
+                raise ValueError(
+                    "insufficient_context Answer must carry no text, category, citations, "
+                    "or disclaimer"
                 )
         return self
 

@@ -12,9 +12,9 @@
 
 - **What:** a retrieval-grounded, citation-first AI assistant for psychology / mental health. Informational-only, crisis-first. Portfolio-grade production stack ("the engineering around the LLM is the point").
 - **Where the work is:** `~/AgenticAIApplication/backend/` (FastAPI modular monolith). *(The earlier design/prototype lives elsewhere — see §9.)*
-- **Progress:** **M1 ✅ · M2 ✅ · M3 ✅** of a 9-milestone plan. **38/38 tests green.**
-- **Branches:** `dev` = M1–M3 (`850560b`). `main`/`prod` = M1–M2 (`40c8181`). **`dev` is ahead of `main`/`prod` by all of M3 — not yet promoted.**
-- **Next:** **M4 — Safety** (crisis node, faithfulness judge, HITL interrupt, disclaimers). See §11.
+- **Progress:** **M1 ✅ · M2 ✅ · M3 ✅ · M4 ✅** of a 9-milestone plan. **48/48 tests green.**
+- **Branches:** `dev` = M1–M4 (`f5150a7`). `main`/`prod` = M1–M3 (`661185b`/`421362d`). **`dev` is ahead of `main`/`prod` by all of M4 — not yet promoted.**
+- **Next:** **M5 — Model gateway** (LiteLLM registry, role routing + fallback). M4 (the ADR-0004 launch gate) is done. See §11.
 
 ---
 
@@ -44,14 +44,14 @@ GitHub tickets → build ticket-by-ticket → promote.
 | **M1** | Vertical slice: ingest → real `/chat` (retrieve→synthesize) → trace | ✅ | `docs/specs/M1-rag-chat-slice.md` |
 | **M2** | Contracts & storage: `Answer` invariants, Category on every passage, JSON reader, corpus stats | ✅ | `docs/specs/M2-contracts-and-storage.md` |
 | **M3** | Agent: LangGraph graph + Postgres checkpointer + multi-turn + keyword tool | ✅ | `docs/specs/M3-agent.md` |
-| **M4** | **Safety**: crisis node, faithfulness judge, HITL interrupt, disclaimers (ADR-0004) | ⬜ **next** | — |
-| **M5** | Model gateway: LiteLLM registry, role routing + fallback | ⬜ | — |
+| **M4** | **Safety**: crisis node, faithfulness judge, HITL interrupt, disclaimers (ADR-0004) | ✅ | `docs/specs/M4-safety.md` |
+| **M5** | Model gateway: LiteLLM registry, role routing + fallback | ⬜ **next** | — |
 | **M6** | Auth & security: JWT, RBAC, per-User conversation ownership | ⬜ | — |
 | **M7** | Evals suite + CI quality gate | ⬜ | — |
 | **M8** | Frontend: chat + citations + trust states + auth + sidebar | ⬜ | — |
 | **M9** | Deploy: Render + Neon + Upstash + Vercel + Langfuse | ⬜ | — |
 
-All M1–M3 tickets (#1–#5, #7–#9, #10–#12) are **closed**. GitHub:
+All M1–M4 tickets (#1–#5, #7–#9, #10–#12, #13–#16) are **closed** (M4's filed retroactively). GitHub:
 `https://github.com/PrasannaMalatesha/psychology-maverick` (public). Branching PR #6 merged.
 
 ---
@@ -137,7 +137,7 @@ retrieved passages). The `Answer` model self-validates its shape.
   **`main`** (stable trunk) → **`prod`** (deploy). Never commit features to main/prod.
 - Promote with merges (non-destructive): `git checkout main && git merge dev && git push` then
   `git checkout prod && git merge main && git push` then `git checkout dev`.
-- **`dev` is currently ahead of `main`/`prod` by all of M3.** Promote when ready (`main`/`prod` are at M2).
+- **`dev` is currently ahead of `main`/`prod` by all of M4.** Promote when ready (`main`/`prod` are at M3).
 - `gh` is authenticated as **PrasannaMalatesha**. Corpus PDFs are gitignored (reproducible via
   `data/fetch_corpus.sh`); commits carry no AI-attribution trailers (house rule).
 - **Note:** `gh issue close` sometimes shows the issue still open for a few seconds (API read-lag) — the close
@@ -216,14 +216,14 @@ The fork-vs-canonical frontend decision is the M8 fork above.
 
 ## 11. EXACT NEXT STEP
 
-**Start M4 (Safety).** Scope (ADR-0004, non-negotiable; project.md §5 flow):
-1. **Crisis-check node** — runs **before retrieve**; on acute-risk signals, surface crisis resources
-   (US 988 + findahelpline.com) and a safety message, and stop (no corpus answer). Detection errs toward showing resources.
-2. **Faithfulness judge** — a cheap-model node checks the Answer is grounded before it ships; on failure →
-   retry once → else Insufficient Context. Toggleable for latency.
-3. **HITL interrupt** — the graph interrupts on low-confidence clinical answers (checkpointer pauses/resumes).
-   *(This is why we adopted LangGraph now — interrupts/branching pay off here.)*
-4. **Clinical disclaimer** on clinical-category answers.
+**M4 (Safety) is done and committed on `dev` (`f5150a7`)** — the ADR-0004 launch gate is satisfied.
+Graph is now `crisis_check → (crisis? finalize) → retrieve → grade → (keyword_tool?) → synthesize → judge → review → finalize`.
+Crisis routing, faithfulness judge (`ModelGateway.is_faithful`), clinical disclaimer (`Answer.disclaimer`),
+and a LangGraph `interrupt` HITL (`POST /conversations/{id}/review`) all landed. 48/48 tests. See `docs/specs/M4-safety.md`.
 
-Kick off exactly as M2/M3: write `docs/specs/M4-safety.md` → `/to-tickets` → build on `dev` → gate → promote.
-Say **"start M4"** (or "promote first, then M4"). Everything above is committed on `dev`.
+**Start M5 (Model gateway).** Scope (ADR-0002): LiteLLM model registry, role-based routing
+(embedding / synthesis / judge) + fallback across the full model set. The `ModelGateway` seam and its
+two adapters already exist (M1); M5 fills in the production routing/registry behind it.
+
+Kick off exactly as M2–M4: write `docs/specs/M5-model-gateway.md` → build on `dev` → gate → promote.
+Say **"start M5"** (or **"promote first"** to push M4 → `main`/`prod` before M5). Everything above is committed on `dev`.

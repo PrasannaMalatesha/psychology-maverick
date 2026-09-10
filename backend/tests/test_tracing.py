@@ -26,7 +26,9 @@ def test_grounded_query_emits_one_trace_with_retrieve_and_synthesize_spans(
     rec = RecordingTracer()
     _chat(engine, settings, rec).answer("cognitive behavioral therapy")
     assert len(rec.traces) == 1
-    assert rec.traces[0]["spans"] == ["retrieve", "synthesize"]
+    # crisis_check runs first every turn; a grounded answer is then judged for faithfulness.
+    # (review opens a span only when it actually interrupts — not on this high-confidence path.)
+    assert rec.traces[0]["spans"] == ["crisis_check", "retrieve", "synthesize", "judge"]
 
 
 def test_insufficient_query_emits_one_trace_without_synthesize_span(
