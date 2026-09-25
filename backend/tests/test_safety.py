@@ -156,12 +156,23 @@ def test_review_resume_over_http(clean_passages, corpus_service: CorpusService, 
         assert first.json()["state"] == "pending_review"
         cid = first.headers["X-Conversation-Id"]
 
-        resumed = c.post(f"/conversations/{cid}/review", json={"decision": "approve"})
+        # The asking User can't approve their own held answer (ADR-0004 human review).
+        own = c.post(f"/conversations/{cid}/review", json={"decision": "approve"})
+        assert own.status_code == 403
+
+        app.state.auth_service.register("reviewer@test.local", "password123", role="admin")
+        admin = c.post(
+            "/auth/login", json={"email": "reviewer@test.local", "password": "password123"}
+        ).json()
+        admin_auth = {"Authorization": f"Bearer {admin['access_token']}"}
+        resumed = c.post(
+            f"/conversations/{cid}/review", json={"decision": "approve"}, headers=admin_auth
+        )
         assert resumed.status_code == 200
         assert resumed.json()["state"] == "grounded"
 
-
-def test_review_with_nothing_pending_is_409(clean_passages, client):
-    # Nothing paused on this thread (unknown id) — resuming must not crash or replay.
-    r = client.post("/conversations/never-started/review", json={"decision": "approve"})
-    assert r.status_code == 409
+        # Nothing paused on this thread (unknown id) — resuming must not crash or replay.
+        none = c.post(
+            "/conversations/never-started/review", json={"decision": "approve"}, headers=admin_auth
+        )
+        assert none.status_code == 409

@@ -6,7 +6,7 @@ accepted trade-off is that showing crisis resources when they aren't needed is f
 than missing someone in danger. No model call: this runs before retrieval on every Query and
 must be deterministic in tests.
 
-ponytail: phrase list, not a classifier. It's one function behind a seam; an LLM/classifier
+Shortcut: phrase list, not a classifier. It's one function behind a seam; an LLM/classifier
 upgrade (M7 evals) swaps `detect_crisis` without touching the graph.
 """
 

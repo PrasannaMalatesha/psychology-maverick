@@ -1,7 +1,8 @@
 """HTTP adapter over the `chat` service — thin by design (ADR-0006).
 
 All routes require an authenticated User (M6); a conversation is owned by its creator, and
-reading or resuming someone else's conversation is forbidden (403 — OWASP-API #1 IDOR defense).
+reading someone else's conversation is forbidden (403 — OWASP-API #1 IDOR defense). Resuming a
+held answer (human review) is Admin-only.
 """
 
 from uuid import uuid4
@@ -9,7 +10,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel
 
-from app.features.auth.deps import Principal, current_user
+from app.features.auth.deps import Principal, current_user, require_admin
 from app.features.chat.schemas import Answer, Query
 
 router = APIRouter(tags=["chat"])
@@ -55,9 +56,10 @@ def review(
     conversation_id: str,
     payload: ReviewDecision,
     request: Request,
-    user: Principal = Depends(current_user),
+    _: Principal = Depends(require_admin),
 ) -> Answer:
-    _guard_owner(request, conversation_id, user)
+    # Reviewer is an Admin, never the asking User: self-approval would defeat the HITL gate
+    # (ADR-0004). An Admin may review any User's held answer, so no ownership check here.
     try:
         return request.app.state.chat_service.review(conversation_id, payload.decision)
     except LookupError as exc:
