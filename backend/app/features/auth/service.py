@@ -39,9 +39,7 @@ class InvalidTokenError(Exception):
 
 
 class AuthService:
-    def __init__(
-        self, engine: Engine, settings: Settings, revocation: RevocationStore
-    ) -> None:
+    def __init__(self, engine: Engine, settings: Settings, revocation: RevocationStore) -> None:
         self._engine = engine
         self._settings = settings
         self._revocation = revocation

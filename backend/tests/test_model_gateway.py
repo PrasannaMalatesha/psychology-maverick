@@ -51,6 +51,7 @@ def test_complete_raises_when_all_models_fail():
 
 # --- embedder dim guard (offline via a stubbed local model) --------------------------------
 
+
 class _FakeST:
     def __init__(self, dim: int) -> None:
         self._dim = dim

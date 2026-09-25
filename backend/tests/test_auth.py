@@ -34,6 +34,7 @@ def _auth(token: str) -> dict[str, str]:
 
 # --- register / login -----------------------------------------------------------------------
 
+
 def test_register_then_login_issues_tokens(app_client: TestClient):
     r = app_client.post("/auth/register", json={"email": "a@test.local", "password": "password123"})
     assert r.status_code == 201
@@ -59,15 +60,14 @@ def test_wrong_password_is_unauthorized(app_client: TestClient):
 
 # --- token protection -----------------------------------------------------------------------
 
+
 def test_chat_requires_authentication(app_client: TestClient):
     r = app_client.post("/chat", json={"query": "what is cognitive behavioral therapy?"})
     assert r.status_code == 401
 
 
 def test_garbage_token_is_rejected(app_client: TestClient):
-    r = app_client.post(
-        "/chat", json={"query": "x"}, headers=_auth("not-a-real-jwt")
-    )
+    r = app_client.post("/chat", json={"query": "x"}, headers=_auth("not-a-real-jwt"))
     assert r.status_code == 401
 
 
@@ -76,6 +76,7 @@ def test_health_stays_public(app_client: TestClient):
 
 
 # --- refresh rotation / logout --------------------------------------------------------------
+
 
 def test_refresh_rotates_and_old_token_is_revoked(app_client: TestClient):
     app_client.post("/auth/register", json={"email": "r@test.local", "password": "password123"})
@@ -106,6 +107,7 @@ def test_logout_revokes_refresh_token(app_client: TestClient):
 
 # --- RBAC -----------------------------------------------------------------------------------
 
+
 def test_admin_route_forbidden_for_regular_user(app_client: TestClient):
     token = _register_and_login(app_client, "plainuser@test.local")
     assert app_client.get("/admin/corpus-stats", headers=_auth(token)).status_code == 403
@@ -126,6 +128,7 @@ def test_admin_route_allowed_for_admin(settings: Settings):
 
 # --- per-User conversation ownership (IDOR) -------------------------------------------------
 
+
 def test_user_cannot_read_another_users_conversation(
     clean_passages, corpus_service, settings: Settings
 ):
@@ -143,9 +146,7 @@ def test_user_cannot_read_another_users_conversation(
         # …Bob cannot (403, IDOR defense).
         assert c.get(f"/conversations/{cid}", headers=_auth(bob)).status_code == 403
         # …and Bob cannot post into it either.
-        posted = c.post(
-            "/chat", json={"query": "x", "conversation_id": cid}, headers=_auth(bob)
-        )
+        posted = c.post("/chat", json={"query": "x", "conversation_id": cid}, headers=_auth(bob))
         assert posted.status_code == 403
 
 

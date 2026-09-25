@@ -31,6 +31,7 @@ class _UnfaithfulGateway(FakeGateway):
 
 # --- Crisis routing -----------------------------------------------------------------------
 
+
 def test_crisis_query_surfaces_resources_and_stops(
     clean_passages, corpus_service: CorpusService, engine: Engine, settings: Settings
 ):
@@ -68,6 +69,7 @@ def test_crisis_detected_over_http(clean_passages, corpus_service: CorpusService
 
 # --- Faithfulness judge -------------------------------------------------------------------
 
+
 def test_unfaithful_answer_is_downgraded_to_insufficient(
     clean_passages, corpus_service: CorpusService, engine: Engine, settings: Settings
 ):
@@ -82,6 +84,7 @@ def test_unfaithful_answer_is_downgraded_to_insufficient(
 
 
 # --- Clinical disclaimer ------------------------------------------------------------------
+
 
 def test_grounded_clinical_answer_carries_disclaimer(
     clean_passages, corpus_service: CorpusService, engine: Engine, settings: Settings
@@ -102,6 +105,7 @@ def test_crisis_answer_has_no_disclaimer(
 
 
 # --- Human-in-the-loop interrupt ----------------------------------------------------------
+
 
 def _needs_review(settings: Settings) -> Settings:
     # Force every grounded clinical answer below the confidence bar → interrupt.

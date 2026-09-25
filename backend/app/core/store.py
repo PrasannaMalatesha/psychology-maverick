@@ -54,9 +54,7 @@ def create_user(engine: Engine, *, id: str, email: str, password_hash: str, role
     """Insert a User. Raises on a duplicate email (unique constraint) — caller maps to 409."""
     with engine.begin() as conn:
         conn.execute(
-            insert(User).values(
-                id=id, email=email, password_hash=password_hash, role=role
-            )
+            insert(User).values(id=id, email=email, password_hash=password_hash, role=role)
         )
 
 

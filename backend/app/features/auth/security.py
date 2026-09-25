@@ -32,6 +32,7 @@ def verify_password(password_hash: str, password: str) -> bool:
 
 # --- JWT --------------------------------------------------------------------------------------
 
+
 def _encode(settings: Settings, payload: dict[str, Any]) -> str:
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
@@ -71,6 +72,7 @@ def decode_token(settings: Settings, token: str) -> dict[str, Any]:
 
 
 # --- refresh-token revocation seam ------------------------------------------------------------
+
 
 class RevocationStore(Protocol):
     def revoke(self, jti: str, ttl_seconds: int) -> None: ...
