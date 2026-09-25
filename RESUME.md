@@ -13,7 +13,7 @@
 - **What:** a retrieval-grounded, citation-first AI assistant for psychology / mental health. Informational-only, crisis-first. Portfolio-grade production stack ("the engineering around the LLM is the point").
 - **Where the work is:** `~/AgenticAIApplication/backend/` (FastAPI modular monolith). *(The earlier design/prototype lives elsewhere — see §9.)*
 - **Progress:** **M1 ✅ · M2 ✅ · M3 ✅ · M4 ✅ · M5 ✅ · M6 ✅** of a 9-milestone plan. **65/65 tests green.**
-- **Branches:** `main`/`prod` = M1–M5 (`cd910c2`/`47f394b`). `dev` = M1–M6 (`0fd6976`). **`dev` is ahead of `main`/`prod` by all of M6 — not yet promoted.**
+- **Branches:** **all three at M1–M6, pushed** — `dev` `7f4955e` · `main` `b22cabb` · `prod` `0fdb6b7`. (This handoff edit adds one docs-only commit on `dev`, so `dev` is +1 doc ahead until the next promotion — code is identical everywhere.)
 - **Next:** **M7 — Evals & CI gate** (offline faithfulness/retrieval eval suite + CI quality gate + import-linter in CI). See §11.
 
 ---
@@ -60,8 +60,8 @@ All M1–M6 tickets (#1–#5, #7–#9, #10–#12, #13–#16, #17–#19, #20–#2
 
 ```bash
 cd ~/AgenticAIApplication/backend
-uv sync                         # deps (Python 3.13 + uv)
-uv run pytest                   # 38 tests — needs Docker running (ephemeral pgvector via testcontainers)
+uv sync                         # deps (Python 3.13 + uv; now includes argon2-cffi + pyjwt)
+uv run pytest                   # 65 tests — needs Docker running (ephemeral pgvector via testcontainers)
 uv run pyright                  # 0 errors
 uv run ruff check               # lint
 uv run lint-imports             # module-boundary contract (ADR-0005/0006)
@@ -85,49 +85,65 @@ uv run python -m app.features.corpus.cli stats
 
 **Live run done once (2026-09-06):** real bge + real pgvector retrieval works end to end; synthesis was
 stubbed (no LLM key). Finding: bge-small's similarity floor is high → default `grounding_threshold` set to
-**0.5** (M2·T2). ⚠️ **A leftover dev container `mav-live` (pgvector on :5434) may still be running — tear it
-down: `docker rm -f mav-live`.**
+**0.5** (M2·T2). (The old `mav-live` dev container is no longer running — nothing to tear down.)
+
+**Auth note (M6):** every route but `/health` now needs a Bearer access token. Get one:
+`POST /auth/register {email,password}` → `POST /auth/login` → use `access_token` as `Authorization: Bearer`.
+`JWT_SECRET` must be set in production (dev default is a placeholder). Refresh-token revocation uses an
+in-memory store unless `REDIS_URL` is set.
 
 ---
 
 ## 4. Architecture (as built)
 
 Modular monolith (ADR-0005), deep modules with small interfaces (ADR-0006). Boundaries enforced by
-import-linter: **`chat` > `assistant` > `retrieval` > `corpus`**; shared contracts live in `core`.
+import-linter: **`chat` > `assistant` > `retrieval` > `corpus` > `auth`** (auth is the foundational
+bottom layer — every feature may import it, it imports only `core`); shared contracts live in `core`.
 
 ```
 backend/app/
   core/
-    config.py        Settings (DATABASE_URL, retrieval_top_k=5, grounding_threshold=0.5, model roles, chunk sizes)
+    config.py        Settings — DATABASE_URL, retrieval_top_k=5, grounding_threshold=0.5, chunk sizes;
+                     M4: clinical_confidence_threshold=0.8, crisis_resources, clinical_disclaimer;
+                     M5: ModelRole + synthesizer/judge/embedder roles; M6: jwt_*, token TTLs, cors_*, redis_url
     db.py            engine, ensure_pgvector, check_health
-    contracts.py     Register, Category, AnswerState, Citation, Answer (self-validating), Query   <-- shared contract
-    store.py         Passage model (pgvector 384 + HNSW), replace_passages (idempotent, orphan-free),
-                     search (semantic top-k), keyword_search (ILIKE), corpus_stats
+    contracts.py     Register, Category, AnswerState (grounded|insufficient_context|crisis|pending_review),
+                     Citation, Answer (self-validating; optional disclaimer), Query   <-- shared contract
+    store.py         Passage (pgvector 384 + HNSW), replace_passages, search, keyword_search, corpus_stats;
+                     M6: User + ConversationOwner models + create_user/get_user_by_*/set|get_conversation_owner
     checkpoint.py    make_postgres_checkpointer (LangGraph Postgres saver; setup() creates tables)
     observability.py Tracer/Trace protocol; NullTracer, RecordingTracer, LangfuseTracer (lazy)
     llm/
-      gateway.py         ModelGateway protocol (embed, synthesize), EMBEDDING_DIM=384
-      fake_gateway.py    FakeGateway — token-overlap embeddings (deterministic; the ONE test stub)
-      production_gateway.py  bge embeddings (sentence-transformers, lazy) + LiteLLM synthesis (lazy)
+      gateway.py         ModelGateway protocol (embed, synthesize, is_faithful), EMBEDDING_DIM=384
+      fake_gateway.py    FakeGateway — token-overlap embeddings; is_faithful→True (the ONE test stub)
+      production_gateway.py  M5 role registry: _complete(chain, call) router; embed (local/<id> ST vs
+                             litellm.embedding, dim-guarded), synthesize→synthesizer, is_faithful→judge
   features/
     corpus/     documents.py (md/txt front-matter + PDF via pypdf; JSON = title manifest),
-                chunking.py (structure-aware, overlap, stable ids), service.py (ingest), cli.py (ingest|stats)
+                chunking.py, service.py (ingest), cli.py (ingest|stats)
     retrieval/  service.py: RetrievalService.retrieve (semantic) + .keyword (ILIKE, score 1.0)
-    assistant/  agent.py (LangGraph StateGraph: retrieve → grade → keyword_tool? → synthesize; JSON-plain
-                state; trace spans via run config), service.py (compile w/ checkpointer, answer, history)
-    chat/       service.py (ChatService delegates to assistant; MemorySaver default), router.py
-                (POST /chat + optional conversation_id + X-Conversation-Id header; GET /conversations/{id}),
-                schemas.py (re-exports the contract from core.contracts)
-  main.py       create_app(settings, gateway, tracer, checkpointer) — all injectable; module-level `app`
-tests/          pgvector-backed (testcontainers, Ryuk disabled on macOS), FakeGateway stub;
-                fixtures/corpus/{textbooks,articles,mental_health}/*.md
+    assistant/  agent.py — LangGraph StateGraph: crisis_check → (crisis? finalize) → retrieve → grade →
+                keyword_tool? → synthesize → judge → review(HITL interrupt) → finalize; safety.py (crisis
+                phrase matcher); service.py (compile w/ checkpointer; answer, resume, history)
+    chat/       service.py (ChatService → assistant; MemorySaver default; optional engine+user_id for
+                ownership), router.py (POST /chat, GET /conversations/{id}, POST /conversations/{id}/review;
+                all require current_user; ownership-guarded), schemas.py (re-exports core.contracts)
+    auth/       security.py (argon2 hash/verify, JWT encode/decode, revocation seam: InMemory|Redis),
+                service.py (AuthService: register/login/refresh/logout), deps.py (current_user, require_admin,
+                Principal), router.py (/auth/register|login|refresh|logout), schemas.py
+  main.py       create_app(settings, gateway, tracer, checkpointer) — all injectable; wires AuthService,
+                CORS + security-headers middleware, GET /admin/corpus-stats (admin-only), /health; `app`
+tests/          pgvector-backed (testcontainers, Ryuk disabled on macOS), FakeGateway stub, authenticated
+                client fixture; fixtures/corpus/{textbooks,articles,mental_health}/*.md
 ```
 
-**Behavior today:** a Query flows ingest → embed → **retrieve** (semantic top-k over pgvector/HNSW) →
-**grade** (if nothing clears the threshold → **keyword_tool** ILIKE escape hatch) → **synthesize** a grounded,
-cited `Answer` **or Insufficient Context** (grounded-or-silent) → one trace per query → multi-turn via the
-checkpointer (`conversation_id`). No-fabrication holds by construction (citations are built only from
-retrieved passages). The `Answer` model self-validates its shape.
+**Behavior today (M1–M6):** an authenticated Query flows **crisis_check** (acute-risk → 988/findahelpline
+resources, stop) → embed → **retrieve** (semantic top-k, pgvector/HNSW) → **grade** (miss → **keyword_tool**
+ILIKE escape hatch) → **synthesize** a grounded, cited `Answer` (clinical answers carry a disclaimer) **or
+Insufficient Context** → **judge** (unfaithful grounded → downgraded to insufficient) → **review** (low-confidence
+clinical → LangGraph `interrupt` → `pending_review`, resumed via the review endpoint) → **finalize** (records
+history) → one trace per query → multi-turn via the checkpointer. Conversations are owned by their User
+(403 on another's — IDOR). No-fabrication holds by construction; the `Answer` model self-validates its shape.
 
 ---
 
@@ -137,7 +153,7 @@ retrieved passages). The `Answer` model self-validates its shape.
   **`main`** (stable trunk) → **`prod`** (deploy). Never commit features to main/prod.
 - Promote with merges (non-destructive): `git checkout main && git merge dev && git push` then
   `git checkout prod && git merge main && git push` then `git checkout dev`.
-- **`dev` is currently ahead of `main`/`prod` by all of M6.** Promote when ready (`main`/`prod` are at M5).
+- **M6 is promoted — all three branches hold M1–M6.** (Only this handoff's docs edit sits on `dev` alone; promote it with the next milestone or on its own.)
 - `gh` is authenticated as **PrasannaMalatesha**. Corpus PDFs are gitignored (reproducible via
   `data/fetch_corpus.sh`); commits carry no AI-attribution trailers (house rule).
 - **Note:** `gh issue close` sometimes shows the issue still open for a few seconds (API read-lag) — the close
