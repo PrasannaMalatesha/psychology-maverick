@@ -14,31 +14,32 @@ from __future__ import annotations
 
 import re
 
-# Acute-risk phrases. Flexible inner whitespace; matched on word boundaries, case-insensitive.
-# Kept deliberately narrow to *intent of self-harm* — not every mention of the topic, but erring
-# toward resources within that scope.
+# Acute-risk phrases, matched on word boundaries, case-insensitive. Scoped to *intent of self-harm*,
+# erring toward resources within that scope. Widened in M7 from eval misses: indirect wording,
+# common typos ("kil", "my self", "suicidel"), verb forms ("overdosed"), and methods. The eval
+# dataset (features/evals) holds the phrasings each pattern exists for — add a case with a pattern.
 _CRISIS_PHRASES = [
-    r"kill(?:ing)? myself",
+    r"kill?(?:ing)? my ?self",
+    r"(?:hurt|harm|hang)(?:ing)? my ?self",
+    r"cut(?:ting)? my ?self",
+    r"unaliv(?:e|ing) my ?self",
     r"end(?:ing)? my life",
-    r"take my own life",
-    r"taking my own life",
+    r"tak(?:e|ing) my own life",
     r"want to die",
     r"wanna die",
     r"wish i (?:was|were) dead",
-    r"better off dead",
+    r"better off (?:dead|without me)",
     r"don'?t want to (?:be here|live)",
     r"no reason to live",
     r"nothing to live for",
-    r"suicidal",
-    r"suicide",
-    r"self[\s-]?harm",
-    r"hurt myself",
-    r"hurting myself",
-    r"harm myself",
-    r"harming myself",
-    r"cut myself",
-    r"cutting myself",
-    r"overdose",
+    r"suicid\w*",
+    r"self[\s-]?harm\w*",
+    r"overdos\w*",
+    r"end(?:ing)? (?:it all|things)",
+    r"can'?t (?:go on|take it) anymore",
+    r"disappear forever",
+    r"asleep and never wake up",
+    r"jump(?:ing)? off (?:a|the) (?:bridge|building|roof|cliff)",
 ]
 
 _CRISIS = re.compile(r"\b(?:" + "|".join(_CRISIS_PHRASES) + r")\b", re.IGNORECASE)
