@@ -147,6 +147,11 @@ def test_review_resume_over_http(clean_passages, corpus_service: CorpusService, 
 
     app = create_app(_needs_review(settings), gateway=FakeGateway())
     with TestClient(app) as c:
+        c.post("/auth/register", json={"email": "review@test.local", "password": "password123"})
+        tokens = c.post(
+            "/auth/login", json={"email": "review@test.local", "password": "password123"}
+        ).json()
+        c.headers["Authorization"] = f"Bearer {tokens['access_token']}"
         first = c.post("/chat", json={"query": "what is cognitive behavioral therapy?"})
         assert first.json()["state"] == "pending_review"
         cid = first.headers["X-Conversation-Id"]
