@@ -69,6 +69,17 @@ class Settings(BaseSettings):
         "a licensed clinician."
     )
 
+    # Auth & security (project.md §9). The secret MUST be overridden in production (env
+    # JWT_SECRET); the default is dev-only. Access tokens are short-lived; refresh tokens rotate.
+    jwt_secret: str = "dev-insecure-secret-change-me-in-production-please"  # ≥32B for HS256
+    jwt_algorithm: str = "HS256"
+    access_token_ttl_minutes: int = 15
+    refresh_token_ttl_days: int = 30
+    # CORS allow-list (the Vercel origin at deploy); empty = same-origin only.
+    cors_allow_origins: list[str] = []
+    # Optional Redis URL for refresh-token revocation; unset → in-memory store (single process).
+    redis_url: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

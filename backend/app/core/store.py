@@ -9,7 +9,8 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Engine, Row, String, Text, delete, insert, text
+from sqlalchemy import Engine, Row, String, Text, delete, insert, select, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base import Base
@@ -27,6 +28,66 @@ class Passage(Base):
     text: Mapped[str] = mapped_column(Text)
     source_ref: Mapped[str] = mapped_column(String)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIM))
+
+
+class User(Base):
+    """An authenticated person (ADR project.md §9). Password is argon2-hashed, never plaintext."""
+
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    email: Mapped[str] = mapped_column(String, unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String)
+    role: Mapped[str] = mapped_column(String, default="user")
+
+
+class ConversationOwner(Base):
+    """Maps a conversation to the User who created it — per-user ownership (IDOR defense, §9)."""
+
+    __tablename__ = "conversation_owners"
+
+    conversation_id: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[str] = mapped_column(String, index=True)
+
+
+def create_user(engine: Engine, *, id: str, email: str, password_hash: str, role: str) -> None:
+    """Insert a User. Raises on a duplicate email (unique constraint) — caller maps to 409."""
+    with engine.begin() as conn:
+        conn.execute(
+            insert(User).values(
+                id=id, email=email, password_hash=password_hash, role=role
+            )
+        )
+
+
+def get_user_by_email(engine: Engine, email: str) -> Row | None:
+    with engine.connect() as conn:
+        return conn.execute(select(User).where(User.email == email)).first()
+
+
+def get_user_by_id(engine: Engine, user_id: str) -> Row | None:
+    with engine.connect() as conn:
+        return conn.execute(select(User).where(User.id == user_id)).first()
+
+
+def set_conversation_owner(engine: Engine, conversation_id: str, user_id: str) -> None:
+    """Record the owner on first write; later writes for the same conversation are a no-op."""
+    with engine.begin() as conn:
+        conn.execute(
+            pg_insert(ConversationOwner)
+            .values(conversation_id=conversation_id, user_id=user_id)
+            .on_conflict_do_nothing(index_elements=["conversation_id"])
+        )
+
+
+def get_conversation_owner(engine: Engine, conversation_id: str) -> str | None:
+    with engine.connect() as conn:
+        row = conn.execute(
+            select(ConversationOwner.user_id).where(
+                ConversationOwner.conversation_id == conversation_id
+            )
+        ).first()
+    return row.user_id if row else None
 
 
 @dataclass(frozen=True)
