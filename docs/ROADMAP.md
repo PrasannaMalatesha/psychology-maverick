@@ -14,7 +14,7 @@
 | **M4** | Safety *(non-negotiable — [ADR-0004](adr/0004-informational-safety-posture.md))* | Crisis-escalation node (before retrieval), faithfulness judge, human-in-the-loop interrupt, clinical disclaimers. **Gate: no user-facing launch before this.** | [M4-safety.md](specs/M4-safety.md) | [#13](https://github.com/PrasannaMalatesha/psychology-maverick/issues/13)–[#16](https://github.com/PrasannaMalatesha/psychology-maverick/issues/16) | ✅ |
 | **M5** | Model gateway | LiteLLM registry, role-based routing + fallback across the full model set ([ADR-0002](adr/0002-config-driven-model-gateway.md)). | [M5-model-gateway.md](specs/M5-model-gateway.md) | [#17](https://github.com/PrasannaMalatesha/psychology-maverick/issues/17)–[#19](https://github.com/PrasannaMalatesha/psychology-maverick/issues/19) | ✅ |
 | **M6** | Auth & security | Email+password JWT (argon2, refresh rotation, Redis revocation), user/admin RBAC, per-User conversation ownership. | [M6-auth-security.md](specs/M6-auth-security.md) | [#20](https://github.com/PrasannaMalatesha/psychology-maverick/issues/20)–[#23](https://github.com/PrasannaMalatesha/psychology-maverick/issues/23) | ✅ |
-| **M7** | Evals & CI gate | Offline evaluation suite (faithfulness, retrieval quality) + CI quality gate + `import-linter` boundary checks. | — | — | ⬜ |
+| **M7** | Evals & CI gate | Offline evaluation suite (faithfulness, retrieval quality) + CI quality gate + `import-linter` boundary checks. | [M7-evals-ci.md](specs/M7-evals-ci.md) | [#24](https://github.com/PrasannaMalatesha/psychology-maverick/issues/24)–[#29](https://github.com/PrasannaMalatesha/psychology-maverick/issues/29) | 🟡 |
 | **M8** | Frontend | Chat + citations + trust states + auth + sidebar, on the chosen frontend (see open decision below). | — | — | ⬜ |
 | **M9** | Deploy | Compose → Render (FastAPI) + Neon (Postgres) + Upstash (Redis) + Vercel + Langfuse Cloud ([ADR-0003](adr/0003-hybrid-deployment.md)). | — | — | ⬜ |
 
@@ -80,6 +80,26 @@ New `auth` feature (the foundational import-linter layer — every feature may d
 - **T4 #23 — RBAC + per-User ownership.** `conversation_owners` map; reading/resuming another User's conversation → 403 (OWASP-API #1 IDOR). `require_admin` gates `GET /admin/corpus-stats`. `ChatService` gained optional `engine`+`user_id` (last params) so M1–M5 service callers are untouched; HTTP enforces ownership.
 
 Gate green: ruff, pyright (0), **65/65 pytest** (11 new in `tests/test_auth.py`), import-linter kept (auth layer added). Deps: `argon2-cffi`, `pyjwt` (core); `redis` (optional extra). Deferred to M7/M9: rate-limiting/brute-force, audit logging, PII-hashing in traces, CI scanning (pip-audit/gitleaks/Trivy), httpOnly-cookie refresh/CSRF/HSTS.
+
+### M7 — Evals & CI gate (spec written, 2026-09-25) — [spec](specs/M7-evals-ci.md)
+
+Work the frontier — a ticket is grabbable once its blockers are ✅.
+
+- [ ] [#24](https://github.com/PrasannaMalatesha/psychology-maverick/issues/24) **T1** CI quality gate + security scans — no blockers
+- [ ] [#25](https://github.com/PrasannaMalatesha/psychology-maverick/issues/25) **T2** Deterministic eval suite + CI eval gate — blocked by #24
+- [ ] [#26](https://github.com/PrasannaMalatesha/psychology-maverick/issues/26) **T3** Live eval: real Corpus + Gemini judge (owner verifies labels) — blocked by #25
+- [ ] [#27](https://github.com/PrasannaMalatesha/psychology-maverick/issues/27) **T4** Crisis Escalation hardening — blocked by #25
+- [ ] [#28](https://github.com/PrasannaMalatesha/psychology-maverick/issues/28) **T5** Tuned Faithfulness rubric — blocked by #26
+- [ ] [#29](https://github.com/PrasannaMalatesha/psychology-maverick/issues/29) **T6** `grounding_threshold` calibration — blocked by #26
+
+Deferred past M7 (owner decision): per-passage Category classifier; model-based crisis classifier.
+
+M4–M6 code review (2026-09-25, on `dev`): fixed a multi-turn stale-answer regression (turn 2+ replayed
+turn 1; a crisis turn poisoned the conversation), resume-with-nothing-pending → 409, duplicate-email
+race + email case-folding, and made human review **Admin-only** (the asking User could self-approve).
+67/67 tests. Open from the review (not blocking): `User`/`ConversationOwner` live in `core.store`
+rather than their features (ADR-0005 drift); production `JWT_SECRET` startup check (M9); small tidy-ups
+(duplicated grounded-passage filter, `Role` enum, review-decision `Literal`).
 
 Post-M1 fixes on `dev` (from `/code-review`):
 - **2026-09-06** — Orphan passages on re-ingest fixed: ingestion now **replaces** each document's passages in one transaction (`core/store.replace_passages`), so chunks removed from an edited/shortened document no longer linger. 19/19 tests (added a shortened-re-ingest orphan check). Still open (deferred to M2/M7): grounded-answer null category from PDFs lacking category metadata; `grounding_threshold` calibration for bge (~0.55 per the live run); LangfuseTracer v2-vs-v3 API pin.
