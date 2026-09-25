@@ -85,7 +85,7 @@ Gate green: ruff, pyright (0), **65/65 pytest** (11 new in `tests/test_auth.py`)
 
 Work the frontier — a ticket is grabbable once its blockers are ✅.
 
-- [ ] [#24](https://github.com/PrasannaMalatesha/psychology-maverick/issues/24) **T1** CI quality gate + security scans — no blockers
+- [x] [#24](https://github.com/PrasannaMalatesha/psychology-maverick/issues/24) **T1** CI quality gate + security scans — ✅ done (`016e509`). GitHub Actions on push/PR to dev/main/prod: ruff lint+format, pyright, import-linter, pytest; pip-audit, gitleaks, Trivy — all clean. Proven to fail on a deliberate lint error (PR #30, closed).
 - [ ] [#25](https://github.com/PrasannaMalatesha/psychology-maverick/issues/25) **T2** Deterministic eval suite + CI eval gate — blocked by #24
 - [ ] [#26](https://github.com/PrasannaMalatesha/psychology-maverick/issues/26) **T3** Live eval: real Corpus + Gemini judge (owner verifies labels) — blocked by #25
 - [ ] [#27](https://github.com/PrasannaMalatesha/psychology-maverick/issues/27) **T4** Crisis Escalation hardening — blocked by #25
