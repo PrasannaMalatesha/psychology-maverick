@@ -12,9 +12,9 @@
 
 - **What:** a retrieval-grounded, citation-first AI assistant for psychology / mental health. Informational-only, crisis-first. Portfolio-grade production stack ("the engineering around the LLM is the point").
 - **Where the work is:** `~/AgenticAIApplication/backend/` (FastAPI modular monolith). *(The earlier design/prototype lives elsewhere — see §9.)*
-- **Progress:** **M1 ✅ · M2 ✅ · M3 ✅ · M4 ✅ · M5 ✅** of a 9-milestone plan. **54/54 tests green.**
-- **Branches:** `main`/`prod` = M1–M4 (`78532d7`/`0819a95`). `dev` = M1–M5 (`15ef8ff`). **`dev` is ahead of `main`/`prod` by all of M5 — not yet promoted.**
-- **Next:** **M6 — Auth & security** (email+password JWT, RBAC, per-User conversation ownership). See §11.
+- **Progress:** **M1 ✅ · M2 ✅ · M3 ✅ · M4 ✅ · M5 ✅ · M6 ✅** of a 9-milestone plan. **65/65 tests green.**
+- **Branches:** `main`/`prod` = M1–M5 (`cd910c2`/`47f394b`). `dev` = M1–M6 (`0fd6976`). **`dev` is ahead of `main`/`prod` by all of M6 — not yet promoted.**
+- **Next:** **M7 — Evals & CI gate** (offline faithfulness/retrieval eval suite + CI quality gate + import-linter in CI). See §11.
 
 ---
 
@@ -46,12 +46,12 @@ GitHub tickets → build ticket-by-ticket → promote.
 | **M3** | Agent: LangGraph graph + Postgres checkpointer + multi-turn + keyword tool | ✅ | `docs/specs/M3-agent.md` |
 | **M4** | **Safety**: crisis node, faithfulness judge, HITL interrupt, disclaimers (ADR-0004) | ✅ | `docs/specs/M4-safety.md` |
 | **M5** | Model gateway: LiteLLM registry, role routing + fallback | ✅ | `docs/specs/M5-model-gateway.md` |
-| **M6** | Auth & security: JWT, RBAC, per-User conversation ownership | ⬜ **next** | — |
-| **M7** | Evals suite + CI quality gate | ⬜ | — |
+| **M6** | Auth & security: JWT, RBAC, per-User conversation ownership | ✅ | `docs/specs/M6-auth-security.md` |
+| **M7** | Evals suite + CI quality gate | ⬜ **next** | — |
 | **M8** | Frontend: chat + citations + trust states + auth + sidebar | ⬜ | — |
 | **M9** | Deploy: Render + Neon + Upstash + Vercel + Langfuse | ⬜ | — |
 
-All M1–M5 tickets (#1–#5, #7–#9, #10–#12, #13–#16, #17–#19) are **closed**. GitHub:
+All M1–M6 tickets (#1–#5, #7–#9, #10–#12, #13–#16, #17–#19, #20–#23) are **closed**. GitHub:
 `https://github.com/PrasannaMalatesha/psychology-maverick` (public). Branching PR #6 merged.
 
 ---
@@ -137,7 +137,7 @@ retrieved passages). The `Answer` model self-validates its shape.
   **`main`** (stable trunk) → **`prod`** (deploy). Never commit features to main/prod.
 - Promote with merges (non-destructive): `git checkout main && git merge dev && git push` then
   `git checkout prod && git merge main && git push` then `git checkout dev`.
-- **`dev` is currently ahead of `main`/`prod` by all of M5.** Promote when ready (`main`/`prod` are at M4).
+- **`dev` is currently ahead of `main`/`prod` by all of M6.** Promote when ready (`main`/`prod` are at M5).
 - `gh` is authenticated as **PrasannaMalatesha**. Corpus PDFs are gitignored (reproducible via
   `data/fetch_corpus.sh`); commits carry no AI-attribution trailers (house rule).
 - **Note:** `gh issue close` sometimes shows the issue still open for a few seconds (API read-lag) — the close
@@ -216,15 +216,18 @@ The fork-vs-canonical frontend decision is the M8 fork above.
 
 ## 11. EXACT NEXT STEP
 
-**M4 and M5 are done.** M4 (ADR-0004 safety gate) is on `main`/`prod`. M5 (config-driven model gateway,
-ADR-0002) is committed on `dev` (`15ef8ff`, issues #17–#19 closed): `ProductionGateway` is now a role
-registry — `ModelRole` primary+fallback chains for `synthesizer`/`judge`/`embedder` in `Settings`, one
-`_complete` router, embedder `local/<id>` vs LiteLLM embeddings with an `EMBEDDING_DIM` guard. `grader`
-omitted (no LLM grader). 54/54 tests. See `docs/specs/M5-model-gateway.md`.
+**M6 is done** (committed on `dev` `0fd6976`, issues #20–#23 closed). New `auth` feature (bottom
+import-linter layer): argon2 + JWT access/refresh with rotation + logout/revocation (in-memory seam,
+Redis adapter for prod), `user`/`admin` RBAC (`GET /admin/corpus-stats`), per-User conversation
+ownership (403 IDOR). `users`/`conversation_owners` in `core.store`; CORS + security headers. Every
+route but `/health` now needs a Bearer access token; the test `client` fixture authenticates. 65/65
+tests. See `docs/specs/M6-auth-security.md`. Deps added: argon2-cffi, pyjwt (core); redis optional.
 
-**Start M6 (Auth & security).** Scope (project.md §15.6): email+password JWT (argon2, refresh-token
-rotation, Redis revocation), user/admin RBAC, and per-User conversation ownership (today `GET
-/conversations/{id}` and the review endpoint are unauthenticated — M6 puts them behind ownership).
+**Start M7 (Evals & CI gate).** Scope (project.md §15.7): an offline evaluation suite (faithfulness,
+retrieval quality — LLM-as-judge where a key exists, deterministic otherwise) + a **CI quality gate**
+(GitHub Actions running ruff/pyright/pytest/import-linter, ideally the security scans deferred from M6:
+pip-audit/gitleaks/Trivy). This is also where the M4/M5/M6 "deferred to M7" items land (tuned
+faithfulness rubric, classifier crisis detection, real per-passage Category classifier).
 
-Kick off exactly as M2–M5: write `docs/specs/M6-auth-security.md` → `/to-tickets` → build on `dev` → gate → promote.
-Say **"start M6"** (or **"promote first"** to push M5 → `main`/`prod` before M6). Everything above is committed on `dev`.
+Kick off exactly as M2–M6: write `docs/specs/M7-evals-ci.md` → `/to-tickets` → build on `dev` → gate → promote.
+Say **"start M7"** (or **"promote first"** to push M6 → `main`/`prod` before M7). Everything above is committed on `dev`.
