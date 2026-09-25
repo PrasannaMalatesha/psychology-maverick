@@ -14,3 +14,5 @@ def test_health_reports_degraded_when_db_unreachable():
     # not raise. Exercises check_health's failure path directly.
     engine = make_engine("postgresql+psycopg://x:x@127.0.0.1:1/none")
     assert check_health(engine) is False
+
+import os  # deliberate lint error (unused import) to prove CI fails
