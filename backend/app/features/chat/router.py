@@ -58,4 +58,7 @@ def review(
     user: Principal = Depends(current_user),
 ) -> Answer:
     _guard_owner(request, conversation_id, user)
-    return request.app.state.chat_service.review(conversation_id, payload.decision)
+    try:
+        return request.app.state.chat_service.review(conversation_id, payload.decision)
+    except LookupError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Nothing pending review") from exc

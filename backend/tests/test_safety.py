@@ -159,3 +159,9 @@ def test_review_resume_over_http(clean_passages, corpus_service: CorpusService, 
         resumed = c.post(f"/conversations/{cid}/review", json={"decision": "approve"})
         assert resumed.status_code == 200
         assert resumed.json()["state"] == "grounded"
+
+
+def test_review_with_nothing_pending_is_409(clean_passages, client):
+    # Nothing paused on this thread (unknown id) — resuming must not crash or replay.
+    r = client.post("/conversations/never-started/review", json={"decision": "approve"})
+    assert r.status_code == 409

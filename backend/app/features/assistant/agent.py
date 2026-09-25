@@ -67,7 +67,9 @@ def build_agent(
             if detect_crisis(state["query"]):
                 answer = Answer(state=AnswerState.crisis, text=settings.crisis_resources)
                 return {"answer": answer.model_dump(mode="json", by_alias=True)}
-        return {}
+        # Clear the previous turn's answer: the checkpointer carries state across turns, and a
+        # stale answer would make crisis_route skip this turn entirely.
+        return {"answer": None}
 
     def synthesize(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
         query = state["query"]

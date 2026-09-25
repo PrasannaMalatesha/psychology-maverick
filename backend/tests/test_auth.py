@@ -147,3 +147,15 @@ def test_user_cannot_read_another_users_conversation(
             "/chat", json={"query": "x", "conversation_id": cid}, headers=_auth(bob)
         )
         assert posted.status_code == 403
+
+
+def test_email_is_case_insensitive(app_client: TestClient):
+    app_client.post("/auth/register", json={"email": "Case@Test.local", "password": "password123"})
+    dup = app_client.post(
+        "/auth/register", json={"email": "case@test.local", "password": "password123"}
+    )
+    assert dup.status_code == 409
+    login = app_client.post(
+        "/auth/login", json={"email": "CASE@test.local", "password": "password123"}
+    )
+    assert login.status_code == 200
