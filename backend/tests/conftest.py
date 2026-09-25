@@ -49,6 +49,13 @@ def client(settings):
     # FakeGateway makes the HTTP seam deterministic and offline (no model calls).
     app = create_app(settings, gateway=FakeGateway())
     with TestClient(app) as c:  # context-manager runs lifespan -> ensure_pgvector + init_store
+        # M6: endpoints require auth. Register + log in a default User and attach the token so
+        # existing HTTP tests exercise the same behaviour, now authenticated.
+        c.post("/auth/register", json={"email": "client@test.local", "password": "password123"})
+        tokens = c.post(
+            "/auth/login", json={"email": "client@test.local", "password": "password123"}
+        ).json()
+        c.headers["Authorization"] = f"Bearer {tokens['access_token']}"
         yield c
 
 
