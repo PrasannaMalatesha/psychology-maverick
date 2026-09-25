@@ -75,6 +75,7 @@ root_package = "app"
 name = "Features depend downward only, never sideways or upward"
 type = "layers"
 layers = [
+    "app.features.evals",
     "app.features.chat",
     "app.features.assistant",
     "app.features.retrieval",
