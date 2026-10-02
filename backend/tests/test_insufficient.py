@@ -33,9 +33,7 @@ def test_insufficient_when_nothing_clears_threshold(
     assert answer.citations == []
 
 
-def test_insufficient_when_store_is_empty(
-    clean_passages, engine: Engine, settings: Settings
-):
+def test_insufficient_when_store_is_empty(clean_passages, engine: Engine, settings: Settings):
     # No ingestion: retrieval returns nothing, so the answer must decline.
     answer = _chat(engine, FakeGateway(), settings).answer("cognitive behavioral therapy")
     assert answer.state.value == "insufficient_context"

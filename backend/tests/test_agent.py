@@ -86,9 +86,9 @@ def test_conversations_endpoint_returns_turns(
     clean_passages, corpus_service: CorpusService, client
 ):
     corpus_service.ingest(str(FIXTURES))
-    cid = client.post(
-        "/chat", json={"query": "what is cognitive behavioral therapy?"}
-    ).headers["X-Conversation-Id"]
+    cid = client.post("/chat", json={"query": "what is cognitive behavioral therapy?"}).headers[
+        "X-Conversation-Id"
+    ]
 
     body = client.get(f"/conversations/{cid}").json()
     assert body["conversation_id"] == cid
@@ -97,3 +97,21 @@ def test_conversations_endpoint_returns_turns(
     empty = client.get("/conversations/does-not-exist")
     assert empty.status_code == 200
     assert empty.json()["turns"] == []
+
+
+def test_each_turn_answers_its_own_query(
+    clean_passages, corpus_service: CorpusService, engine: Engine, settings: Settings
+):
+    # Regression: the checkpointer carried turn 1's `answer` into turn 2, so crisis routing saw
+    # a stale answer and replayed it instead of retrieving.
+    corpus_service.ingest(str(FIXTURES))
+    chat = ChatService(RetrievalService(engine, FakeGateway()), FakeGateway(), settings)
+
+    first = chat.answer("what is cognitive behavioral therapy?", "conv-turns")
+    second = chat.answer("why does sleep matter?", "conv-turns")
+    assert second.text != first.text
+
+    crisis = chat.answer("I want to kill myself", "conv-turns")
+    assert crisis.state.value == "crisis"
+    after = chat.answer("how is anxiety treated?", "conv-turns")
+    assert after.state.value != "crisis"  # one crisis turn must not poison the conversation

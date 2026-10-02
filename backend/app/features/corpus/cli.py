@@ -1,7 +1,7 @@
 """Thin CLI adapter over the `corpus` feature (ADR-0006).
 
-    python -m app.features.corpus.cli ingest <path>
-    python -m app.features.corpus.cli stats
+python -m app.features.corpus.cli ingest <path>
+python -m app.features.corpus.cli stats
 """
 
 from __future__ import annotations

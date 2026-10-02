@@ -11,7 +11,7 @@ from psycopg.rows import dict_row
 
 def make_postgres_checkpointer(database_url: str) -> PostgresSaver:
     conninfo = database_url.replace("postgresql+psycopg://", "postgresql://")
-    # ponytail: single connection; use a psycopg pool if checkpoint throughput matters.
+    # shortcut: single connection; use a psycopg pool if checkpoint throughput matters.
     conn = psycopg.connect(conninfo, autocommit=True, row_factory=dict_row)  # type: ignore[arg-type]
     saver = PostgresSaver(conn)  # type: ignore[arg-type]
     saver.setup()

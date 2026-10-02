@@ -42,8 +42,11 @@ class AssistantService:
         """Resume a turn paused at the human-in-the-loop review (ADR-0004).
 
         `decision == "approve"` serves the held clinical answer; anything else withholds it.
+        Raises LookupError when nothing on this conversation is paused for review.
         """
         config: RunnableConfig = {"configurable": {"thread_id": conversation_id}}
+        if not self._graph.get_state(config).next:
+            raise LookupError(f"no answer pending review on {conversation_id}")
         with self._tracer.trace("chat.review", query=decision) as trace:
             config["configurable"]["trace"] = trace
             result = self._graph.invoke(Command(resume=decision), config)
