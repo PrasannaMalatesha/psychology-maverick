@@ -47,3 +47,4 @@ uv run lint-imports  # module boundaries (ADR-0005/0006)
 
 Walking skeleton: `GET /health` (reports DB reachability), the pgvector test harness, and the model
 gateway seam with a deterministic fake. `POST /chat` returns 501 until T3. Feature services are shells.
+
