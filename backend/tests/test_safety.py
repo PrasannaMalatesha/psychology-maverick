@@ -31,6 +31,7 @@ class _UnfaithfulGateway(FakeGateway):
 
 # --- Crisis routing -----------------------------------------------------------------------
 
+
 def test_crisis_query_surfaces_resources_and_stops(
     clean_passages, corpus_service: CorpusService, engine: Engine, settings: Settings
 ):
@@ -68,6 +69,7 @@ def test_crisis_detected_over_http(clean_passages, corpus_service: CorpusService
 
 # --- Faithfulness judge -------------------------------------------------------------------
 
+
 def test_unfaithful_answer_is_downgraded_to_insufficient(
     clean_passages, corpus_service: CorpusService, engine: Engine, settings: Settings
 ):
@@ -82,6 +84,7 @@ def test_unfaithful_answer_is_downgraded_to_insufficient(
 
 
 # --- Clinical disclaimer ------------------------------------------------------------------
+
 
 def test_grounded_clinical_answer_carries_disclaimer(
     clean_passages, corpus_service: CorpusService, engine: Engine, settings: Settings
@@ -102,6 +105,7 @@ def test_crisis_answer_has_no_disclaimer(
 
 
 # --- Human-in-the-loop interrupt ----------------------------------------------------------
+
 
 def _needs_review(settings: Settings) -> Settings:
     # Force every grounded clinical answer below the confidence bar → interrupt.
@@ -156,6 +160,23 @@ def test_review_resume_over_http(clean_passages, corpus_service: CorpusService, 
         assert first.json()["state"] == "pending_review"
         cid = first.headers["X-Conversation-Id"]
 
-        resumed = c.post(f"/conversations/{cid}/review", json={"decision": "approve"})
+        # The asking User can't approve their own held answer (ADR-0004 human review).
+        own = c.post(f"/conversations/{cid}/review", json={"decision": "approve"})
+        assert own.status_code == 403
+
+        app.state.auth_service.register("reviewer@test.local", "password123", role="admin")
+        admin = c.post(
+            "/auth/login", json={"email": "reviewer@test.local", "password": "password123"}
+        ).json()
+        admin_auth = {"Authorization": f"Bearer {admin['access_token']}"}
+        resumed = c.post(
+            f"/conversations/{cid}/review", json={"decision": "approve"}, headers=admin_auth
+        )
         assert resumed.status_code == 200
         assert resumed.json()["state"] == "grounded"
+
+        # Nothing paused on this thread (unknown id) — resuming must not crash or replay.
+        none = c.post(
+            "/conversations/never-started/review", json={"decision": "approve"}, headers=admin_auth
+        )
+        assert none.status_code == 409

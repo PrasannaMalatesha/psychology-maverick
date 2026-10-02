@@ -11,6 +11,7 @@ import uuid
 
 import jwt
 from sqlalchemy import Engine
+from sqlalchemy.exc import IntegrityError
 
 from app.core.config import Settings
 from app.core.store import create_user, get_user_by_email, get_user_by_id
@@ -38,28 +39,30 @@ class InvalidTokenError(Exception):
 
 
 class AuthService:
-    def __init__(
-        self, engine: Engine, settings: Settings, revocation: RevocationStore
-    ) -> None:
+    def __init__(self, engine: Engine, settings: Settings, revocation: RevocationStore) -> None:
         self._engine = engine
         self._settings = settings
         self._revocation = revocation
 
     def register(self, email: str, password: str, *, role: str = "user") -> RegisteredUser:
+        email = email.strip().lower()
         if get_user_by_email(self._engine, email) is not None:
             raise EmailTakenError(email)
         user_id = uuid.uuid4().hex
-        create_user(
-            self._engine,
-            id=user_id,
-            email=email,
-            password_hash=hash_password(password),
-            role=role,
-        )
+        try:
+            create_user(
+                self._engine,
+                id=user_id,
+                email=email,
+                password_hash=hash_password(password),
+                role=role,
+            )
+        except IntegrityError as exc:  # lost a concurrent-registration race on the unique email
+            raise EmailTakenError(email) from exc
         return RegisteredUser(id=user_id, email=email, role=role)
 
     def login(self, email: str, password: str) -> TokenPair:
-        user = get_user_by_email(self._engine, email)
+        user = get_user_by_email(self._engine, email.strip().lower())
         # verify even when the user is missing would be ideal for timing; argon2's cost already
         # dominates, and a constant dummy-verify is deferred with the rest of brute-force hardening.
         if user is None or not verify_password(user.password_hash, password):
